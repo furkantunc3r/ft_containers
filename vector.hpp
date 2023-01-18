@@ -2,6 +2,7 @@
 #define VECTOR_HPP
 
 #include <iostream>
+#include "normal_iterator.hpp"
 
 namespace ft
 {
@@ -17,6 +18,10 @@ namespace ft
             typedef const value_type& const_reference;
             typedef typename _Alloc::pointer pointer;
             typedef typename _Alloc::const_pointer const_pointer;
+            typedef ft::normal_iterator<pointer, vector> iterator;
+            typedef ft::normal_iterator<const_pointer, vector> const_iterator;
+            // typedef ft::reverse_iterator<iterator> reverse_iterator;
+            // typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
             allocator_type _allocator;
             pointer _begin;
@@ -125,6 +130,11 @@ namespace ft
             _Tp* data() { return pointer(this->_begin); }
             const _Tp* data() const { return const_pointer(this->_begin); }
 
+            // iterator
+
+            iterator begin() { return iterator(this->_begin); }
+            const_iterator begin() const { return const_iterator(this->_begin); }
+
             // capacity
 
             bool empty() const
@@ -134,7 +144,6 @@ namespace ft
                 return 0;
             }
             size_type size() const { return size_type(this->_end - this->_begin); }
-            size_type capacity() const { return size_type(this->_end_of_storage - this->_begin); }
             size_type max_size() const { return this->_allocator.max_size(); }
             void reserve (size_type new_cap)
             {
@@ -142,10 +151,39 @@ namespace ft
                     throw std::length_error("Max size exceeded!");
                 if (new_cap > capacity())
                 {
-                    
+                    pointer _temp = this->_allocator.allocate(new_cap);
+                    size_type _size = size();
+                    if (this->_begin)
+                    {
+                        for (size_type i = 0; i < _size; i++)
+                        {
+                            this->_allocator.construct(_temp + i, this->_begin[i]);
+                            this->_allocator.destroy(this->_begin + i);
+                        }
+                        this->_allocator.deallocate(this->_begin, capacity());
+                        this->_begin = _temp;
+                        this->_end = this->_begin + _size;
+                        this->_end_of_storage = this->_begin + new_cap;
+                    }
+                    else
+                    {
+                        this->_begin = this->_allocator.allocate(new_cap);
+                        this->_end = this->_begin;
+                        this->_end_of_storage = this->_begin + new_cap;
+                    }
                 }
             }
+            size_type capacity() const { return size_type(this->_end_of_storage - this->_begin); }
 
+            // modifiers
+
+            void clear()
+            {
+                size_type _size = size();
+                for (size_type _i = 0; _i < _size; _i++)
+                    this->_allocator.destroy(this->_begin + _i);
+                this->_end = this->_begin;
+            }
     };
 }
 
