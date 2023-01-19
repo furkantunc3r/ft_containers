@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "normal_iterator.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft
 {
@@ -20,8 +21,8 @@ namespace ft
             typedef typename _Alloc::const_pointer const_pointer;
             typedef ft::normal_iterator<pointer, vector> iterator;
             typedef ft::normal_iterator<const_pointer, vector> const_iterator;
-            // typedef ft::reverse_iterator<iterator> reverse_iterator;
-            // typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+            typedef ft::reverse_iterator<iterator> reverse_iterator;
+            typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
             allocator_type _allocator;
             pointer _begin;
@@ -86,6 +87,7 @@ namespace ft
             }
             void assign(size_type count, const _Tp& value)
             {
+                clear();
                 if (count > this->capacity())
                 {
                     for (pointer _temp = this->_begin; _temp <= this->_end_of_storage; _temp++)
@@ -93,13 +95,13 @@ namespace ft
                     this->_allocator.deallocate(this->_begin, capacity());
                     this->_begin = this->_allocator.allocate(count);
                     this->_end = this->_begin;
-                    for (size_type i = 0; i < count; i++)
-                    {
-                        this->_allocator.construct(_end, value);
-                        _end++;
-                    }
-                    this->_end_of_storage = this->_begin + count;
                 }
+                for (size_type i = 0; i < count; i++)
+                {
+                    this->_allocator.construct(_end, value);
+                    _end++;
+                }
+                this->_end_of_storage = this->_begin + count;
             }
             allocator_type get_allocator() const { return this->_allocator; }
             
@@ -134,6 +136,13 @@ namespace ft
 
             iterator begin() { return iterator(this->_begin); }
             const_iterator begin() const { return const_iterator(this->_begin); }
+            iterator end() { return iterator(this->_end); }
+            const_iterator end() const { return const_iterator(this->_end); }
+
+            reverse_iterator rbegin() { return reverse_iterator(end()); }
+            const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+            reverse_iterator rend() { return reverse_iterator(begin()); }
+            const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
             // capacity
 
@@ -183,6 +192,22 @@ namespace ft
                 for (size_type _i = 0; _i < _size; _i++)
                     this->_allocator.destroy(this->_begin + _i);
                 this->_end = this->_begin;
+            }
+            iterator insert(iterator pos, const value_type& value)
+            {
+                const size_type __n = pos - begin();
+                if (capacity() != size() && pos == end())
+                {
+                    this->_allocator.construct(this->_end, value);
+                    _end++;
+                }
+                else
+                {
+                    if (this->end != this->_end_of_storage)
+                    {
+                        
+                    }
+                }
             }
     };
 }

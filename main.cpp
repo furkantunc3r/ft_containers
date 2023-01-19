@@ -9,6 +9,11 @@ void pointer_func(const int *p, std::size_t size)
     std::cout << '\n';
 }
 
+void do_print(int n)
+{
+    std::cout << n << " ";
+}
+
 int main(void)
 {
     std::vector<int> a;
@@ -46,7 +51,6 @@ int main(void)
     std::cout << "Def vector capacity after reserve " << a.capacity() << std::endl;
     std::cout << "Custom vector capacity after reserve " << ft_a.capacity() << std::endl;
 
-    
     std::cout << "---CLEAR TEST---" << std::endl;
     std::cout << "Def vector size before clear " << a.size() << std::endl;
     std::cout << "Custom vector size before clear " << ft_a.size() << std::endl;
@@ -55,9 +59,29 @@ int main(void)
     std::cout << "Def vector size after clear " << a.size() << std::endl;
     std::cout << "Custom vector size after clear " << ft_a.size() << std::endl;
 
-    // Iterator test
-    ft::vector<int>::iterator it;
-    it = ft_a.begin();
-    std::cout << *it << std::endl;
-    std::cout << *(it++) << std::endl;
+    std::cout << "---ITERATOR TEST---" << std::endl;
+    a.assign(5, 5);
+    ft_a.assign(5, 5);
+    std::cout << "Def vector for_each ";
+    std::for_each(a.begin(), a.end(), do_print);
+    std::cout << std::endl;
+    std::cout << "Custom vector for_each ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+
+    std::cout << std::endl << "---REVERSE ITERATOR TEST---" << std::endl;
+    a.assign(3, 7);
+    ft_a.assign(3, 7);
+    std::cout << "Def vector for_each ";
+    std::for_each(a.rbegin(), a.rend(), do_print);
+    std::cout << std::endl;
+    std::cout << "Custom vector for_each ";
+    std::for_each(ft_a.rbegin(), ft_a.rend(), do_print);
+
+    std::cout << std::endl << "---INSERT TEST---" << std::endl;
+    a.insert(a.end(), 0);
+    std::cout << "Def vector insert ";
+    std::for_each(a.begin(), a.end(), do_print);
+    ft_a.insert(ft_a.end(), 0);
+    std::cout << "Custom vector insert ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
 }

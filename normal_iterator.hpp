@@ -2,6 +2,9 @@
 #define NORMAL_ITERATOR_HPP
 
 #include "iterator_traits.hpp"
+#include "is_integral.hpp"
+#include "enable_if.hpp"
+#include "utils.hpp"
 
 namespace ft
 {
@@ -22,11 +25,12 @@ namespace ft
         
         normal_iterator() : current(_Iterator()) {}
         explicit normal_iterator(const _Iterator& __i) : current(__i) {}
-        // template<typename _Iter>normal_iterator(const __normal_iterator<_Iter,
-        //        typename __enable_if<
-        //         (std::__are_same<_Iter, typename _Container::pointer>::__value),
-        //        _Container>::__type>& __i)
-        //  : current(__i.base()) { }
+        template<typename _Iter> normal_iterator(const normal_iterator<_Iter, 
+                typename enable_if<
+                (ft::__are_same<_Iter, typename _Container::pointer>::__value), 
+                _Container>::__type>& __i)
+            : current(__i.base()) { }
+
         // Forward operations
         reference operator*() const { return *current; }
         pointer operator->() const { return current; }
