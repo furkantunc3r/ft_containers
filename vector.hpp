@@ -205,6 +205,15 @@ namespace ft
                 {
                     if (this->end != this->_end_of_storage)
                     {
+                        pointer _tmp = this->_allocator.allocate(capacity());
+                        for (size_type i; i = size(); i++)
+                        {
+                            this->_allocator.construct(_tmp, this->begin[i]);
+                            _tmp++;
+                        }
+                        _tmp - i;
+                        clear();
+
                         
                     }
                 }
