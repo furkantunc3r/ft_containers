@@ -1,5 +1,6 @@
 #include "vector.hpp"
 #include <vector>
+#include <algorithm>
 
 void pointer_func(const int *p, std::size_t size)
 {
@@ -46,8 +47,8 @@ int main(void)
     std::cout << "---RESERVE TEST---" << std::endl;
     std::cout << "Def vector capacity before reserve " << a.capacity() << std::endl;
     std::cout << "Custom vector capacity before reserve " << ft_a.capacity() << std::endl;
-    a.reserve(10);
-    ft_a.reserve(10);
+    a.reserve(1);
+    ft_a.reserve(1);
     std::cout << "Def vector capacity after reserve " << a.capacity() << std::endl;
     std::cout << "Custom vector capacity after reserve " << ft_a.capacity() << std::endl;
 
@@ -76,12 +77,25 @@ int main(void)
     std::cout << std::endl;
     std::cout << "Custom vector for_each ";
     std::for_each(ft_a.rbegin(), ft_a.rend(), do_print);
-
+    
     std::cout << std::endl << "---INSERT TEST---" << std::endl;
     a.insert(a.end(), 0);
+    a.insert(a.begin(), 31);
     std::cout << "Def vector insert ";
     std::for_each(a.begin(), a.end(), do_print);
     ft_a.insert(ft_a.end(), 0);
+    ft_a.insert(ft_a.begin(), 31);
+    std::cout << std::endl;
     std::cout << "Custom vector insert ";
     std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+    
+    a.insert(a.begin(), 3, 31);
+    std::cout << "Def vector insert ";
+    std::for_each(a.begin(), a.end(), do_print);
+    std::cout << std::endl;
+    ft_a.insert(ft_a.begin(), 3, 31);
+    std::cout << "Custom vector insert ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
 }

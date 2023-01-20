@@ -101,7 +101,7 @@ namespace ft
                     this->_allocator.construct(_end, value);
                     _end++;
                 }
-                this->_end_of_storage = this->_begin + count;
+                this->_end_of_storage = this->_end + count;
             }
             allocator_type get_allocator() const { return this->_allocator; }
             
@@ -166,7 +166,7 @@ namespace ft
                     {
                         for (size_type i = 0; i < _size; i++)
                         {
-                            this->_allocator.construct(_temp + i, this->_begin[i]);
+                            this->_allocator.construct(_temp + i, *(this->_begin + i));
                             this->_allocator.destroy(this->_begin + i);
                         }
                         this->_allocator.deallocate(this->_begin, capacity());
@@ -195,30 +195,87 @@ namespace ft
             }
             iterator insert(iterator pos, const value_type& value)
             {
-                const size_type __n = pos - begin();
                 if (capacity() != size() && pos == end())
                 {
                     this->_allocator.construct(this->_end, value);
                     _end++;
+                    return pos;
                 }
                 else
                 {
-                    if (this->end != this->_end_of_storage)
+                    if (this->_end != this->_end_of_storage)
                     {
-                        pointer _tmp = this->_allocator.allocate(capacity());
-                        for (size_type i; i = size(); i++)
+                        pointer _tmp;
+                        size_type _size = size();
+                        size_type _cap = capacity();
+                        size_type j = 0;
+                        _tmp = this->_allocator.allocate(capacity());
+                        for (size_type i = 0; i < _size; i++)
                         {
-                            this->_allocator.construct(_tmp, this->begin[i]);
+                            this->_allocator.construct(_tmp, *(this->_begin + i));
                             _tmp++;
                         }
-                        _tmp - i;
+                        _tmp -= _size;
                         clear();
-
-                        
+                        for (size_type i = 0; i <= _size; i++)
+                        {
+                            if ((pos - begin()) == (long int)i)
+                            {
+                                this->_allocator.construct(&(this->_begin[i]), value);
+                                j -= 1;
+                            }
+                            else
+                                this->_allocator.construct(&(this->_begin[i]), _tmp[j]);
+                            this->_end++;
+                            j++;
+                        }
+                        this->_end_of_storage = this->_begin + (_cap + 1);
+                        return pos;
+                    }
+                    else
+                    {
+                        this->reserve(capacity() + 1);
+                        pointer _tmp;
+                        size_type _size = size();
+                        size_type _cap = capacity();
+                        size_type j = 0;
+                        _tmp = this->_allocator.allocate(capacity());
+                        for (size_type i = 0; i < _size; i++)
+                        {
+                            this->_allocator.construct(_tmp, *(this->_begin + i));
+                            _tmp++;
+                        }
+                        _tmp -= _size;
+                        clear();
+                        for (size_type i = 0; i <= _size; i++)
+                        {
+                            if ((pos - begin()) == (long int)i) // fix the need for typecast
+                            {
+                                this->_allocator.construct(&(this->_begin[i]), value);
+                                j -= 1;
+                            }
+                            else
+                                this->_allocator.construct(&(this->_begin[i]), _tmp[j]);
+                            this->_end++;
+                            j++;
+                        }
+                        this->_end_of_storage = this->_begin + (_cap + 1);
+                        return pos;
                     }
                 }
             }
-    };
+            iterator insert(iterator pos, size_type count, const value_type& value) // check const_iterator to iterator issue
+            {
+                for (size_type i = 0; i < count; i++)
+                    insert(pos, value);
+                return pos;
+            }
+            template<class InputIt>
+            iterator insert(iterator pos, InputIt first, InputIt last)
+            {
+               
+            }
+        };
 }
 
 #endif
