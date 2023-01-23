@@ -90,9 +90,8 @@ namespace ft
                 clear();
                 if (count > this->capacity())
                 {
-                    for (pointer _temp = this->_begin; _temp <= this->_end_of_storage; _temp++)
-                        this->_allocator.destroy(_temp);
-                    this->_allocator.deallocate(this->_begin, capacity());
+                    if (capacity())
+                        this->_allocator.deallocate(this->_begin, capacity());
                     this->_begin = this->_allocator.allocate(count);
                     this->_end = this->_begin;
                 }
@@ -103,6 +102,11 @@ namespace ft
                 }
                 this->_end_of_storage = this->_end + count;
             }
+            template<class InputIt>
+            // void assign(InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
+            // {
+
+            // }
             allocator_type get_allocator() const { return this->_allocator; }
             
             // element access
@@ -271,11 +275,84 @@ namespace ft
                 return pos;
             }
             template<class InputIt>
-            iterator insert(iterator pos, InputIt first, InputIt last)
+            iterator insert(iterator pos, InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
             {
-               
+                for (; first != last; ++first)
+                    pos = insert(pos, *first);
+                return pos;
+            }
+            iterator erase (iterator pos)
+            {
+                pointer _tmp;
+                size_type _size = size();
+                _tmp = this->_allocator.allocate(capacity());
+                for (size_type i = 0; i < _size; i++)
+                {
+                    this->_allocator.construct(_tmp, *(this->_begin + i));
+                    _tmp++;
+                }
+                _tmp -= _size;
+                clear();
+                for (size_type i = 0; i < _size - 1; i++)
+                {
+                    if ((pos - begin()) == (long int)i)
+                        _tmp++;
+                    else
+                    {
+                        this->_allocator.construct(this->_begin + i, *_tmp);
+                        _tmp++;
+                        this->_end++;
+                    }
+                }
+                return pos;
+            }
+            iterator erase (iterator first, iterator last)
+            {
+                while (first != last)
+                {
+                    erase(first);
+                    first++;
+                }
+                return first;
+            }
+            void push_back (const _Tp& value)
+            {
+                insert(end(), value);
+            }
+            void pop_back ()
+            {
+                erase(end());
+            }
+            void resize(size_type count, _Tp value = _Tp())
+            {
+                if (size() > count)
+                {
+                    size_type i = end() - (begin() + count);
+                    while (i > 0)
+                    {
+                        pop_back();
+                        i--;
+                    }
+                }
+                else if (size() < count)
+                {
+                    size_type _size = size();
+                    while (_size < count)
+                    {
+                        push_back(value);
+                        _size++;
+                    }
+                }
+                else
+                    return ;
+            }
+            void swap(vector& other)
+            {
+                std::swap(this->_begin, other._begin);
+                std::swap(this->_end, other._end);
+                std::swap(this->_end_of_storage, other._end_of_storage);     
             }
         };
-}
+};
 
 #endif

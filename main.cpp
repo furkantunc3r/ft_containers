@@ -17,26 +17,15 @@ void do_print(int n)
 
 int main(void)
 {
-    std::vector<int> a;
     ft::vector<int> ft_a;
 
     std::cout << "---EMPTY AND ASSING TEST---" << std::endl;
-    std::cout << "Initially, def vector.empty(): " << a.empty() << '\n';
-    std::cout << "Initially, custom vector.empty(): " << ft_a.empty() << '\n';
-    a.assign(5, 5);
+    std::cout << "Initially, vector.empty(): " << ft_a.empty() << '\n';
     ft_a.assign(5, 5);
-    std::cout << "After adding elements, def vector.empty(): " << a.empty() << '\n';
-    std::cout << "After adding elements, custom vector.empty(): " << ft_a.empty() << '\n';
+    
+    std::cout << "After adding elements, vector.empty(): " << ft_a.empty() << '\n';
 
     std::cout << "--ELEMENT ACCESS TEST---" << std::endl;
-    std::cout << "Default vector" << std::endl;
-    std::cout << a.at(2) << std::endl;
-    std::cout << a[3] << std::endl;
-    std::cout << a.front() << std::endl;
-    std::cout << a.back() << std::endl;
-    std::cout << a.max_size() << std::endl;
-    pointer_func(a.data(), a.size());
-    std::cout << "My vector" << std::endl;
     std::cout << ft_a.at(2) << std::endl;
     std::cout << ft_a[3] << std::endl;
     std::cout << ft_a.front() << std::endl;
@@ -45,57 +34,67 @@ int main(void)
     std::cout << ft_a.max_size() << std::endl;
     
     std::cout << "---RESERVE TEST---" << std::endl;
-    std::cout << "Def vector capacity before reserve " << a.capacity() << std::endl;
-    std::cout << "Custom vector capacity before reserve " << ft_a.capacity() << std::endl;
-    a.reserve(1);
+    std::cout << "Vector capacity before reserve " << ft_a.capacity() << std::endl;
     ft_a.reserve(1);
-    std::cout << "Def vector capacity after reserve " << a.capacity() << std::endl;
-    std::cout << "Custom vector capacity after reserve " << ft_a.capacity() << std::endl;
+    std::cout << "Vector capacity after reserve " << ft_a.capacity() << std::endl;
 
     std::cout << "---CLEAR TEST---" << std::endl;
-    std::cout << "Def vector size before clear " << a.size() << std::endl;
-    std::cout << "Custom vector size before clear " << ft_a.size() << std::endl;
-    a.clear();
+    std::cout << "Vector size before clear " << ft_a.size() << std::endl;
     ft_a.clear();
-    std::cout << "Def vector size after clear " << a.size() << std::endl;
-    std::cout << "Custom vector size after clear " << ft_a.size() << std::endl;
+    std::cout << "Vector size after clear " << ft_a.size() << std::endl;
 
     std::cout << "---ITERATOR TEST---" << std::endl;
-    a.assign(5, 5);
     ft_a.assign(5, 5);
-    std::cout << "Def vector for_each ";
-    std::for_each(a.begin(), a.end(), do_print);
-    std::cout << std::endl;
-    std::cout << "Custom vector for_each ";
+    std::cout << "Vector for_each ";
     std::for_each(ft_a.begin(), ft_a.end(), do_print);
 
     std::cout << std::endl << "---REVERSE ITERATOR TEST---" << std::endl;
-    a.assign(3, 7);
     ft_a.assign(3, 7);
-    std::cout << "Def vector for_each ";
-    std::for_each(a.rbegin(), a.rend(), do_print);
-    std::cout << std::endl;
-    std::cout << "Custom vector for_each ";
+    std::cout << "Vector for_each ";
     std::for_each(ft_a.rbegin(), ft_a.rend(), do_print);
     
     std::cout << std::endl << "---INSERT TEST---" << std::endl;
-    a.insert(a.end(), 0);
-    a.insert(a.begin(), 31);
-    std::cout << "Def vector insert ";
-    std::for_each(a.begin(), a.end(), do_print);
     ft_a.insert(ft_a.end(), 0);
     ft_a.insert(ft_a.begin(), 31);
-    std::cout << std::endl;
-    std::cout << "Custom vector insert ";
+    std::cout << "Vector insert ";
     std::for_each(ft_a.begin(), ft_a.end(), do_print);
     std::cout << std::endl;
     
-    a.insert(a.begin(), 3, 31);
-    std::cout << "Def vector insert ";
-    std::for_each(a.begin(), a.end(), do_print);
-    std::cout << std::endl;
     ft_a.insert(ft_a.begin(), 3, 31);
-    std::cout << "Custom vector insert ";
+    std::cout << "Vector insert ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+
+    std::cout << "---ERASE TEST---" << std::endl;
+    ft_a.erase(ft_a.end() - 1);
+    std::cout << "Vector after erase ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+
+    std::cout << "---PUSH-POP BACK TEST---" << std::endl;
+    ft_a.push_back(21);
+    std::cout << "Vector after erase ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+    ft_a.pop_back();
+    std::cout << "Vector after pop ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    
+    std::cout << std::endl << "---RESIZE TEST---" << std::endl;
+    ft_a.resize(5, 0);
+    std::cout << "Vector after resize ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+    ft_a.resize(10, 69);
+    std::cout << "Vector after resize ";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+
+    std::cout << "---SWAP TEST---" << std::endl;
+    ft::vector<int> ft_b;
+    ft_b.assign(10, 1);
+    ft_b.swap(ft_a);
+    std::cout << "Vector after swap ";
     std::for_each(ft_a.begin(), ft_a.end(), do_print);
     std::cout << std::endl;
 }
