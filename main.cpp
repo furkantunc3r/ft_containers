@@ -18,10 +18,14 @@ void do_print(int n)
 int main(void)
 {
     ft::vector<int> ft_a;
+    ft::vector<int> ft_c;
 
     std::cout << "---EMPTY AND ASSING TEST---" << std::endl;
     std::cout << "Initially, vector.empty(): " << ft_a.empty() << '\n';
     ft_a.assign(5, 5);
+    ft_c.assign(ft_a.begin(), ft_a.end());
+    std::cout << "Vector c ";
+    pointer_func(ft_c.data(), ft_c.size());
     
     std::cout << "After adding elements, vector.empty(): " << ft_a.empty() << '\n';
 
@@ -97,4 +101,28 @@ int main(void)
     std::cout << "Vector after swap ";
     std::for_each(ft_a.begin(), ft_a.end(), do_print);
     std::cout << std::endl;
+
+    std::cout << "---OPERATOR TEST---" << std::endl;
+    ft_c.assign(10, 1);
+    std::cout << "A :";
+    std::for_each(ft_a.begin(), ft_a.end(), do_print);
+    std::cout << std::endl;
+    std::cout << "B :";
+    std::for_each(ft_b.begin(), ft_b.end(), do_print);
+    std::cout << std::endl;
+    std::cout << "C :";
+    std::for_each(ft_c.begin(), ft_c.end(), do_print);
+    std::cout << std::endl;
+    std::cout << "A == B : " << (ft_a == ft_b) << std::endl;
+    std::cout << "A == C : " << (ft_a == ft_c) << std::endl;
+    std::cout << "A != B : " << (ft_a != ft_b) << std::endl;
+    std::cout << "A != C : " << (ft_a != ft_c) << std::endl;
+    std::cout << "A < B : " << (ft_a < ft_b) << std::endl;
+    std::cout << "A < C : " << (ft_a < ft_c) << std::endl;
+    std::cout << "A <= B : " << (ft_a <= ft_b) << std::endl;
+    std::cout << "A <= C : " << (ft_a <= ft_c) << std::endl;
+    std::cout << "A > B : " << (ft_a > ft_b) << std::endl;
+    std::cout << "A > C : " << (ft_a > ft_c) << std::endl;
+    std::cout << "A >= B : " << (ft_a >= ft_b) << std::endl;
+    std::cout << "A >= C : " << (ft_a >= ft_c) << std::endl;
 }

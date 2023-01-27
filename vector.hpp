@@ -103,10 +103,24 @@ namespace ft
                 this->_end_of_storage = this->_end + count;
             }
             template<class InputIt>
-            // void assign(InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
-            // {
-
-            // }
+            void assign(InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
+            {
+                size_type _count = last - first;
+                clear();
+                if (_count > capacity())
+                {
+                    if (capacity())
+                        this->_allocator.deallocate(this->_begin, capacity());
+                    this->_begin = this->_allocator.allocate(_count);
+                    this->_end = this->_begin;
+                }
+                for (; first != last; first++)
+                {
+                    this->_allocator.construct(_end, *first);
+                    _end++;
+                }
+                this->_end_of_storage = this->_end + _count;
+            }
             allocator_type get_allocator() const { return this->_allocator; }
             
             // element access
@@ -354,5 +368,73 @@ namespace ft
             }
         };
 };
+
+template<class T, class Alloc>
+bool operator==(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs.size() != rhs.size())
+        return 0;
+    ft::vector<int>::const_iterator _l = lhs.begin();
+    ft::vector<int>::const_iterator _lend = lhs.end();
+    ft::vector<int>::const_iterator _r = rhs.begin();
+    while (_l != _lend)
+    {
+        if (*_l != *_r)
+            return 0;
+        _l++;
+        _r++;
+    }
+    return 1;
+}
+
+template<class T, class Alloc >
+bool operator!=(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs.size() != rhs.size())
+        return 1;
+    ft::vector<int>::const_iterator _l = lhs.begin();
+    ft::vector<int>::const_iterator _lend = lhs.end();
+    ft::vector<int>::const_iterator _r = rhs.begin();
+    while (_l != _lend)
+    {
+        if (*_l != *_r)
+            return 1;
+        _l++;
+        _r++;
+    }
+    return 0;
+}
+
+template<class T, class Alloc>
+bool operator<(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs == rhs)
+        return 0;
+    return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template<class T, class Alloc>
+bool operator<=(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs == rhs && (ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end())))
+        return 0;
+    return 1;
+}
+
+template<class T, class Alloc>
+bool operator>(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs == rhs)
+        return 0;
+    return !(ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+}
+
+template<class T, class Alloc>
+bool operator>=(const ft::vector<T,Alloc>& lhs, const ft::vector<T,Alloc>& rhs)
+{
+    if (lhs == rhs && !(ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end())))
+        return 1;
+    return 0;
+}
 
 #endif
