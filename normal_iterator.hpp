@@ -24,11 +24,13 @@ namespace ft
         typedef typename _traits_type::pointer pointer;
         
         normal_iterator() : current(_Iterator()) {}
+
         explicit normal_iterator(const _Iterator& __i) : current(__i) {}
+
         template<typename _Iter> normal_iterator(const normal_iterator<_Iter, 
-                typename enable_if<
+                typename ft::enable_if<
                 (ft::__are_same<_Iter, typename _Container::pointer>::__value), 
-                _Container>::__type>& __i)
+                _Container>::type>& __i)
             : current(__i.base()) { }
 
         // Forward operations
@@ -56,7 +58,7 @@ namespace ft
         }
         normal_iterator operator+(const difference_type &_n) const { return normal_iterator(current + _n); }
 
-        normal_iterator operator-(const difference_type &_n) const { return normal_iterator(current - _n); } // maybe broken
+        normal_iterator operator-(difference_type _n) const {return normal_iterator(current - _n);}
 
         normal_iterator &operator-=(const difference_type &_n)
         {

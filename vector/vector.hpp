@@ -2,8 +2,8 @@
 #define VECTOR_HPP
 
 #include <iostream>
-#include "normal_iterator.hpp"
-#include "reverse_iterator.hpp"
+#include "../normal_iterator.hpp"
+#include "../reverse_iterator.hpp"
 
 namespace ft
 {
@@ -30,7 +30,9 @@ namespace ft
             pointer _end_of_storage;
 
             vector() : _begin(0), _end(0), _end_of_storage(0) {};
+
             explicit vector (const allocator_type& alloc) : _allocator(alloc) {};
+
             explicit vector (size_type n, const _Tp& value = _Tp(), const allocator_type& alloc = allocator_type()) : _allocator(alloc)
             {
                 this->_begin = this->_allocator.allocate(n);
@@ -42,8 +44,9 @@ namespace ft
                 }
                 this->_end_of_storage = this->_begin + n;
             }
+
             template<class InputIt>
-            vector (InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) : _allocator(alloc)
+            vector (InputIt first, InputIt last, const allocator_type& alloc = allocator_type(), typename ft::enable_if<!is_integral<InputIt>::value, bool>::type = true) : _allocator(alloc)
             {
                 size_type i = 0;
                 for (InputIt temp = first; temp != last; temp++)
@@ -58,18 +61,21 @@ namespace ft
                 }
                 this->_end_of_storage = this->_begin + i;
             }
+
             vector (const vector& other) : _allocator(other._allocator)
             {
-                this->_begin = this->_allocator(other.capacity());
+                this->_begin = this->_allocator.allocate(other.capacity());
                 this->_end = this->_begin;
                 this->_end_of_storage = this->_begin + (other.capacity());
-                for (pointer _temp = other->_begin; _temp != other->_end; _temp++)
+                for (pointer _temp = other._begin; _temp != other._end; _temp++)
                 {
-                    this->_allocator.construct(_end, _temp);
+                    this->_allocator.construct(_end, *_temp);
                     _end++;
                 }
             }
+
             ~vector() {};
+
             vector& operator= (const vector& other)
             {
                 for (pointer _temp = this->_begin; _temp <= this->_end_of_storage; _temp++)
@@ -79,12 +85,13 @@ namespace ft
                 this->_end = this->_begin;
                 for (pointer _tempOther = other._begin; _tempOther <= other._end_of_storage; _tempOther++)
                 {
-                    this->_allocator.construct(_end, _tempOther);
+                    this->_allocator.construct(_end, *_tempOther);
                     _end++;
                 }
                 this->_end_of_storage = this->_begin + (other.capacity());
                 return *this;
             }
+
             void assign(size_type count, const _Tp& value)
             {
                 clear();
@@ -102,25 +109,46 @@ namespace ft
                 }
                 this->_end_of_storage = this->_end + count;
             }
-            template<class InputIt>
-            void assign(InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
-            {
-                size_type _count = last - first;
-                clear();
-                if (_count > capacity())
-                {
-                    if (capacity())
-                        this->_allocator.deallocate(this->_begin, capacity());
-                    this->_begin = this->_allocator.allocate(_count);
-                    this->_end = this->_begin;
-                }
-                for (; first != last; first++)
-                {
-                    this->_allocator.construct(_end, *first);
-                    _end++;
-                }
-                this->_end_of_storage = this->_end + _count;
-            }
+
+            template< class InputIterator > void assign( InputIterator first, InputIterator last, typename ft::enable_if<!is_integral<InputIterator>::value, bool>::type = true)
+			{
+				typedef typename ft::iterator_traits<InputIterator>::iterator_category iter;
+				if (ft::__are_same<iter, std::random_access_iterator_tag>::__value)
+				{
+					difference_type _len = std::distance(first, last);
+					clear();
+					if (_len > (difference_type)capacity())
+					{
+						if (capacity())
+							this->_allocator.deallocate(this->_begin, capacity());
+						this->_begin = this->_allocator.allocate(_len);
+						this->_end = this->_begin;
+						this->_end_of_storage = this->_begin + _len;
+					}
+					while(first != last)
+					{
+						this->_allocator.construct(this->_end, *first);
+						first++;
+						this->_end++;
+					}	
+				}
+				else
+				{
+					iterator pos(begin());
+
+					while ((pos != end()) && (first != last))
+					{
+						*pos = *first;
+						++first;
+						++pos;
+					}
+					if (first == last)
+						erase(pos, end());
+					else
+						insert(end(), first, last);
+				}
+			}
+
             allocator_type get_allocator() const { return this->_allocator; }
             
             // element access
