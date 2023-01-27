@@ -1,4 +1,4 @@
-#include "vector.hpp"
+#include "./vector/vector.hpp"
 #include <vector>
 #include <algorithm>
 
@@ -20,6 +20,7 @@ int main(void)
     ft::vector<int> ft_a;
     ft::vector<int> ft_c;
 
+    ft_a.insert(ft_a.begin(), 2, 21);
     std::cout << "---EMPTY AND ASSING TEST---" << std::endl;
     std::cout << "Initially, vector.empty(): " << ft_a.empty() << '\n';
     ft_a.assign(5, 5);
