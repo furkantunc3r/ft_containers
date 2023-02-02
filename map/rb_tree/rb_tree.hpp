@@ -7,11 +7,11 @@ enum {BLACK, RED};
 
 namespace ft
 {
-    template<typename _Val, typename _Compare, typename _Allocator = std::allocator<_Val>>
+    template<typename _Val, typename _Compare, typename _Allocator = std::allocator<_Val> >
     class rb_tree
     {
     public:
-        typedef typename _Allocator::template rebind<Node<_Val>>::other allocator_type;
+        typedef typename _Allocator::template rebind<Node<_Val> >::other allocator_type;
         typedef _Val                                                    value_type;
         typedef typename allocator_type::pointer                        pointer;
         typedef typename allocator_type::const_pointer                  const_pointer;
@@ -51,10 +51,16 @@ namespace ft
                 n->left = _p;
             }
             else if (_p == _gp->left)
-                _gp->left = n;
+            {
+                _p->left = n->right;
+                _p->left->left = n;
+                _p->left->parent = _p;
+                n->parent = _p->left;
+                n->right = NULL;
+            }
             else
                 _gp->right = n;
-            _p->parent = n;
+            _gp = n;
             _root->parent = NULL;
         }
 
@@ -75,12 +81,17 @@ namespace ft
             {
                 _root = n;
                 n->right = _p;
+                n->right->parent = n;
             }
             else if (_p == _gp->right)
                 _gp->right = n;
             else
+            {
+                n->right = _gp->left;
+                _gp->left->left = NULL;
                 _gp->left = n;
-            _p->parent = n;
+                n->parent = _gp;
+            }
             _root->parent = NULL;
         }
 
@@ -137,9 +148,9 @@ namespace ft
 
         void rb_insert_fix(_Base_ptr n)
         {
-            _Base_ptr _gp = n->parent->parent;
             while (n->parent != NULL && n->parent->color == RED)
             {
+                _Base_ptr _gp = n->parent->parent;
                 if (_gp != NULL && n->parent == _gp->left)
                 {
                     if (_gp->right != NULL && _gp->right->color == RED)
@@ -158,7 +169,7 @@ namespace ft
                     {
                         n->parent->color = BLACK;
                         _gp->color = RED;
-                        right_rotate(_gp);
+                        right_rotate(n->parent);
                     }
                 }
                 else if (_gp != NULL && n->parent == _gp->right)
@@ -181,6 +192,162 @@ namespace ft
                 }
             }
             _root->color = BLACK;
+        }
+
+        _Base_ptr minimum(_Base_ptr n)
+        {
+            while (n->left != NULL)
+                n = n->left;
+            return n;
+        }
+
+        _Base_ptr maximum(_Base_ptr n)
+        {
+            while (n->right != NULL)
+                n = n->right;
+            return n;
+        }
+
+        void rb_transplant(_Base_ptr u, _Base_ptr v) // change to operator overload later
+        {
+            if (u->parent == NULL)
+                _root = v;
+            else if (u == u->parent->left)
+                u->parent->left = v;
+            else
+                u->parent->right = v;
+            if (v != NULL)
+                v->parent = u->parent;
+        }
+        void remove(_Base_ptr n, int key)
+        {
+            _Base_ptr   z = NULL;
+            _Base_ptr   x;
+            _Base_ptr   y;
+
+            while (n != NULL)
+            {
+                if (n->data == key)
+                    z = n;
+                if (n->data < key)
+                {
+                    n = n->right;
+                }
+                else
+                    n = n->left;
+            }
+
+            if ( z == NULL)
+            {
+                std::cout << "Key not found" << std::endl;
+                return ;
+            }
+
+            y = z;
+            int y_org_color = y->color;
+            if (z->left == NULL)
+            {
+                x = z->right;
+                rb_transplant(z, z->right);
+            }
+            else if (z->right == NULL)
+            {
+                x = z->left;
+                rb_transplant(z, z->left);
+            }
+            else
+            {
+                y = maximum(z->left);
+                y_org_color = y->color;
+                x = y->right;
+                if (x != NULL && (y == z->right || y == z->left))
+                    x->parent = y;
+                else if (y != NULL && y->right != NULL)
+                {
+                    rb_transplant(y, y->right);
+                    y->right = z->right;
+                    y->right->parent = y;
+                }
+                rb_transplant(z, y);
+                y->right = z->right;
+                y->color = z->color;
+            }
+            delete z;
+            if (y_org_color == BLACK)
+                rb_remove_fix(x);
+        }
+
+        void rb_remove_fix(_Base_ptr n)
+        {
+            _Base_ptr s;
+
+            while (n != NULL && n != _root && n->color == RED)
+            {
+                if (n == n->parent->left)
+                {
+                    s = n->parent->right;
+                    if (s->color == BLACK)
+                    {
+                        s->color = BLACK;
+                        n->parent->color = RED;
+                        left_rotate(n->parent);
+                        s = n->parent->right;
+                    }
+                    if (s->left->color == BLACK && s->right->color == BLACK)
+                    {
+                        s->color = 1;
+                        n = n->parent;
+                    }
+                    else
+                    {
+                        if (s->right->color == BLACK)
+                        {
+                            s->left->color = BLACK;
+                            s->color = RED;
+                            right_rotate(s);
+                            s = n->parent->right;
+                        }
+                        s->color = n->parent->color;
+                        n->parent->color = BLACK;
+                        s->right->color = BLACK;
+                        left_rotate(n->parent);
+                        n = _root;
+                    }
+                }
+                else
+                {
+                    s = n->parent->left;
+                    if (s->color == RED)
+                    {
+                        s->color = BLACK;
+                        n->parent->color = RED;
+                        right_rotate(n->parent);
+                        s = n->parent->left;
+                    }
+                    if ( s->right->color == BLACK && s->right->color == BLACK)
+                    {
+                        s->color = RED;
+                        n = n->parent;
+                    }
+                    else
+                    {
+                        if (s->left->color == BLACK)
+                        {
+                            s->right->color = BLACK;
+                            s->color = RED;
+                            left_rotate(s);
+                            s = n->parent->left;
+                        }
+                        s->color = n->parent->color;
+                        n->parent->color = BLACK;
+                        s->parent->color = BLACK;
+                        right_rotate(n->parent);
+                        n = _root;
+                    }
+                }
+            }
+            if (n != NULL)
+                n->color = BLACK;
         }
     };
 };

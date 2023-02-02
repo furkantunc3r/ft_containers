@@ -17,7 +17,7 @@ namespace ft
         _Base_ptr   right;
         int         color; // 1 -> Red, 0 -> Black
 
-        Node() : data(), color(0), left(), right(), parent() { }
+        Node() : data(), color(0), left(NULL), right(NULL), parent(NULL) { }
 
         Node(const T &_value, _Base_ptr left = NULL, _Base_ptr right = NULL, _Base_ptr parent = NULL)
                 : data(_value), color(1), left(left), right(right), parent(parent) { }
