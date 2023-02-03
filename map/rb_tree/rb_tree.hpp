@@ -208,146 +208,214 @@ namespace ft
             return n;
         }
 
-        void rb_transplant(_Base_ptr u, _Base_ptr v) // change to operator overload later
+        _Base_ptr search(_Val n)
         {
-            if (u->parent == NULL)
-                _root = v;
-            else if (u == u->parent->left)
-                u->parent->left = v;
-            else
-                u->parent->right = v;
-            if (v != NULL)
-                v->parent = u->parent;
-        }
-        void remove(_Base_ptr n, int key)
-        {
-            _Base_ptr   z = NULL;
-            _Base_ptr   x;
-            _Base_ptr   y;
+            _Base_ptr _tmp = _root;
 
-            while (n != NULL)
+            while (_tmp != NULL)
             {
-                if (n->data == key)
-                    z = n;
-                if (n->data < key)
+                if (n < _tmp->data)
                 {
-                    n = n->right;
+                    if (_tmp->left == NULL)
+                        break ;
+                    else
+                        _tmp = _tmp->left;
                 }
+                else if (n == _tmp->data)
+                    break ;
                 else
-                    n = n->left;
+                {
+                    if (_tmp->right == NULL)
+                        break ;
+                    else
+                        _tmp = _tmp->right;
+                }
             }
+            return _tmp;
+        }
 
-            if ( z == NULL)
+        void deleteByVal(_Val n)
+        {
+            if (_root == NULL)
+                return ;
+            
+            _Base_ptr v = search(n);
+
+            if (v->data != n)
+                return ;
+
+            remove(v);
+        }
+
+        _Base_ptr phantom_node(_Base_ptr x)
+        {
+            if (x->left != NULL && x->right != NULL)
+                return maximum(x->left);
+            if (x->left == NULL && x->right == NULL)
+                return NULL;
+
+            if (x->left != NULL)
+                return x->left;
+            else
+                return x->right;
+        }
+
+        void swap_values(_Base_ptr u, _Base_ptr v)
+        {
+            _Val _tmp;
+
+            _tmp = u->data;
+            u->data = v->data;
+            v->data = _tmp;
+        }
+
+        bool is_on_left(_Base_ptr x)
+        {
+            if (x == x->parent->left)
+                return 1;
+            return 0;
+        }
+
+        _Base_ptr get_sibling(_Base_ptr x)
+        {
+            if (x->parent == NULL)
+                return NULL;
+            if (is_on_left(x))
+                return x->parent->right;
+            return x->parent->left;  
+        }
+
+        void remove(_Base_ptr root)
+        {
+            _Base_ptr u = phantom_node(root);
+            _Base_ptr parent = root->parent;
+
+            bool uvBlack = ((u == NULL || u->color == BLACK) && (root->color == BLACK));
+
+            if (u == NULL)
             {
-                std::cout << "Key not found" << std::endl;
+                if (root == _root)
+                    root = NULL;
+                else
+                {
+                    if (uvBlack)
+                        fix_double_black(root);
+                    else
+                        if (get_sibling(root) != NULL)
+                            get_sibling(root)->color = RED;
+                    if (is_on_left(root))
+                        parent->left = NULL;
+                    else
+                        parent->right = NULL;
+                }
+                delete root;
                 return ;
             }
 
-            y = z;
-            int y_org_color = y->color;
-            if (z->left == NULL)
+            if  (root->left == NULL || root->right == NULL)
             {
-                x = z->right;
-                rb_transplant(z, z->right);
-            }
-            else if (z->right == NULL)
-            {
-                x = z->left;
-                rb_transplant(z, z->left);
-            }
-            else
-            {
-                y = maximum(z->left);
-                y_org_color = y->color;
-                x = y->right;
-                if (x != NULL && (y == z->right || y == z->left))
-                    x->parent = y;
-                else if (y != NULL && y->right != NULL)
+                if (root == _root)
                 {
-                    rb_transplant(y, y->right);
-                    y->right = z->right;
-                    y->right->parent = y;
-                }
-                rb_transplant(z, y);
-                y->right = z->right;
-                y->color = z->color;
-            }
-            delete z;
-            if (y_org_color == BLACK)
-                rb_remove_fix(x);
-        }
-
-        void rb_remove_fix(_Base_ptr n)
-        {
-            _Base_ptr s;
-
-            while (n != NULL && n != _root && n->color == RED)
-            {
-                if (n == n->parent->left)
-                {
-                    s = n->parent->right;
-                    if (s->color == BLACK)
-                    {
-                        s->color = BLACK;
-                        n->parent->color = RED;
-                        left_rotate(n->parent);
-                        s = n->parent->right;
-                    }
-                    if (s->left->color == BLACK && s->right->color == BLACK)
-                    {
-                        s->color = 1;
-                        n = n->parent;
-                    }
-                    else
-                    {
-                        if (s->right->color == BLACK)
-                        {
-                            s->left->color = BLACK;
-                            s->color = RED;
-                            right_rotate(s);
-                            s = n->parent->right;
-                        }
-                        s->color = n->parent->color;
-                        n->parent->color = BLACK;
-                        s->right->color = BLACK;
-                        left_rotate(n->parent);
-                        n = _root;
-                    }
+                    root->data = u->data;
+                    root->left = root->right = NULL;
+                    delete u;
                 }
                 else
                 {
-                    s = n->parent->left;
-                    if (s->color == RED)
+                    if (is_on_left(root))
+                        parent->left = u;
+                    else
+                        parent->right = u;
+                    delete root;
+                    u->parent = parent;
+                    if (uvBlack)
+                        fix_double_black(u);
+                    else
+                        u->color = BLACK;
+                }
+                return ;
+            }
+
+            // v has 2 children, swap values with successor and recurse
+            swap_values(u, root);
+            remove(u);
+        }
+
+        bool has_red_child(_Base_ptr x)
+        {
+            if ((x->left != NULL && x->left->color == RED) || (x->right != NULL && x->right->color == RED))
+                return 1;
+            return 0;
+        }
+
+        void fix_double_black(_Base_ptr x)
+        {
+            if (x == _root)
+                return ;
+
+            _Base_ptr sibling = get_sibling(x);
+            _Base_ptr parent = x->parent;
+
+            if (sibling == NULL)
+                fix_double_black(parent);
+            else
+            {
+                if (sibling->color == RED)
+                {
+                    parent->color = RED;
+                    sibling->color = BLACK;
+                if (is_on_left(sibling))
+                    right_rotate(parent);
+                else
+                    left_rotate(parent);
+                fix_double_black(x);
+                }
+                else
+                {
+                    if (has_red_child(sibling))
                     {
-                        s->color = BLACK;
-                        n->parent->color = RED;
-                        right_rotate(n->parent);
-                        s = n->parent->left;
-                    }
-                    if ( s->right->color == BLACK && s->right->color == BLACK)
-                    {
-                        s->color = RED;
-                        n = n->parent;
+                        if (sibling->left != NULL && sibling->left->color == RED)
+                        {
+                            if (is_on_left(sibling))
+                            {
+                                sibling->left->color = sibling->color;
+                                sibling->color = parent->color;
+                                right_rotate(parent);
+                            }
+                            else
+                            {
+                                sibling->left->color = parent->color;
+                                right_rotate(sibling);
+                                left_rotate(parent);
+                            }
+                        }
+                        else
+                        {
+                            if (is_on_left(sibling))
+                            {
+                                sibling->right->color = parent->color;
+                                left_rotate(sibling);
+                                right_rotate(parent);
+                            }
+                            else
+                            {
+                                sibling->right->color = sibling->color;
+                                sibling->color = parent->color;
+                                left_rotate(parent);
+                            }
+                        }
+                        parent->color = BLACK;
                     }
                     else
                     {
-                        if (s->left->color == BLACK)
-                        {
-                            s->right->color = BLACK;
-                            s->color = RED;
-                            left_rotate(s);
-                            s = n->parent->left;
-                        }
-                        s->color = n->parent->color;
-                        n->parent->color = BLACK;
-                        s->parent->color = BLACK;
-                        right_rotate(n->parent);
-                        n = _root;
+                        sibling->color = RED;
+                        if (parent->color == BLACK)
+                            fix_double_black(parent);
+                        else
+                            parent->color = BLACK;
                     }
                 }
             }
-            if (n != NULL)
-                n->color = BLACK;
         }
     };
 };

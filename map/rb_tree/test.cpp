@@ -17,8 +17,10 @@ int main()
     tree.insert(31);
     tree.insert(9);
 
-    tree.remove(tree._root, 30);
-    // tree.remove(tree._root, 50);
+    tree.deleteByVal(30);
+    tree.deleteByVal(50);
+    tree.deleteByVal(60);
+    tree.deleteByVal(35);
 
     
 

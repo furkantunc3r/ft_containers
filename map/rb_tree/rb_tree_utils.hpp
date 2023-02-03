@@ -21,7 +21,6 @@ namespace ft
 
         Node(const T &_value, _Base_ptr left = NULL, _Base_ptr right = NULL, _Base_ptr parent = NULL)
                 : data(_value), color(1), left(left), right(right), parent(parent) { }
-
     };
 
 
