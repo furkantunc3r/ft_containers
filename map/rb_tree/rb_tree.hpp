@@ -2,6 +2,8 @@
 #define RB_TREE_HPP
 
 #include "rb_tree_utils.hpp"
+#include "../reverse_iterator.hpp"
+#include "iterator.hpp"
 
 enum {BLACK, RED};
 
@@ -11,30 +13,143 @@ namespace ft
     class rb_tree
     {
     public:
-        typedef typename _Allocator::template rebind<Node<_Val> >::other allocator_type;
-        typedef _Val                                                    value_type;
-        typedef typename allocator_type::pointer                        pointer;
-        typedef typename allocator_type::const_pointer                  const_pointer;
-        typedef typename allocator_type::reference                      reference;
-        typedef typename allocator_type::const_reference                const_reference;
-        typedef size_t                                                  size_type;
-        typedef ptrdiff_t                                               difference_type;
-        //iterator
-        //iterator
-        //iterator
-        //iterator
-        typedef ft::Node<_Val>* _Base_ptr;
+        typedef typename _Allocator::template rebind<Node<_Val> >::other    allocator_type;
+        typedef _Val                                                        value_type;
+        typedef typename allocator_type::pointer                            pointer;
+        typedef typename allocator_type::const_pointer                      const_pointer;
+        typedef typename allocator_type::reference                          reference;
+        typedef typename allocator_type::const_reference                    const_reference;
+        typedef size_t                                                      size_type;
+        typedef ptrdiff_t                                                   difference_type;
+        typedef ft::tree_iterator<value_type>                               iterator;
+        typedef ft::const_tree_iterator<value_type>                         const_iterator;
+        typedef ft::reverse_iterator<iterator>                              reverse_iterator;
+        typedef ft::reverse_iterator<const_iterator>                        const_reverse_iterator;
+        
+        typedef ft::Node<_Val>*                                             _Base_ptr;
 
         _Base_ptr       _root;
+        _Base_ptr       _end;
         size_type       _count;
         _Compare        _key_compare;
         allocator_type  _allocator;
 
     
-        rb_tree() : _root() { }
+        rb_tree() : _root(), _end(), _count(0)
+        {
+            _end = this->_allocator.allocate(1);
+            allocator.construct(_end, _Val());
+        }
+
+        rb_tree(const rb_tree& other)
+        {
+            this->_root = other._root;
+            this->_end = other._end;
+            this->_count = other._count;
+            this->_key_compare = other._key_compare;
+            this->_allocator = other._allocator;
+        }
+
+        rb_tree& operator=(const rb_tree& other)
+        {
+            _m_erase(this->_end);
+            this->_root = other._root;
+            this->end = other._end;
+            this->_count = other._count;
+            this->_key_compare = other._key_compare;
+            this->_allocator = other._allocator;
+        }
+
+        ~rb_tree()
+        {
+            _m_erase(_end);
+        }
+
+        void _m_erase(_Base_ptr _x)
+        {
+            if (_x)
+				{
+					_m_erase(_x->left_node);
+					_m_erase(_x->right_node);
+					this->_allocator.destroy(_x);
+					this->_allocator.deallocate(_x, 1);
+				}
+        }
 
         _Base_ptr GetRoot() { return _root; }
 
+        iterator lower_bound(const value_type& key)
+        {
+            _Base_ptr ret = _end;
+            _Base_ptr _node = _tree;
+            
+            while (_node)
+            {
+                if (!value_compare()(_node->data, _value))
+                {
+                    ret = _node;
+                    _node = _node->left;
+                }
+                else
+                    _node = _node->right;
+            }
+            return iterator(ret);
+        }
+
+        const_iterator lower_bound(const value_type& _value) const
+        {
+            _Base_ptr ret = _end;
+            _Base_ptr _node = _tree;
+            
+            while (_node)
+            {
+                if (!value_compare()(_node->data, _value))
+                {
+                    ret = _node;
+                    _node = _node->left;
+                }
+                else
+                    _node = _node->right;
+            }
+            return const_iterator(ret);
+        }
+
+        iterator upper_bound(const value_type& key)
+        {
+            _Base_ptr ret = _end;
+            _Base_ptr _node = _tree;
+            
+            while (_node)
+            {
+                if (value_compare()(_value, _node->data))
+                {
+                    ret = _node;
+                    _node = _node->left;
+                }
+                else
+                    _node = _node->right;
+            }
+            return iterator(ret);
+        }
+
+        const_iterator upper_bound(const value_type& _value) const
+        {
+            _Base_ptr ret = _end;
+            _Base_ptr _node = _tree;
+            
+            while (_node)
+            {
+                if (value_compare()(_value, _node->data))
+                {
+                    ret = _node;
+                    _node = _node->left;
+                }
+                else
+                    _node = _node->right;
+            }
+            return const_iterator(ret);
+        }
+        
         void left_rotate(_Base_ptr n)
         {
             _Base_ptr _gp = n->parent->parent;
@@ -95,8 +210,22 @@ namespace ft
             _root->parent = NULL;
         }
 
-        void insert(const _Val& _value)
+        void insert(_Base_ptr pos, const _Val& value)
         {
+            if (!_root || _root == _end)
+                insert(value);
+            else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
+                insert(value);
+            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, _value))
+                insert(value);
+            else
+                insert_with_pos(pos, value);
+        }
+
+        _Base_ptr insert(const _Val& _value)
+        {
+            if (search(_value))
+                return ;
             if (_root == NULL)
             {
                 _root = new ft::Node<_Val>();
@@ -143,6 +272,69 @@ namespace ft
                     }
                 }
                 rb_insert_fix(_new);
+                this->_count += 1;
+                _end->left = GetRoot();
+                _root->parent = _end;
+                _end->parent = maximum(_root);
+                return _new;
+            }
+        }
+
+        _Base_ptr insert_with_pos(_Base_ptr pos, const _Val& _value)
+        {
+            if (search(_value))
+                return ;
+            if (_root == NULL)
+            {
+                _root = new ft::Node<_Val>();
+                _root->data = _value;
+                _root->parent = NULL;
+                _root->color = BLACK;
+            }
+            else
+            {
+                _Base_ptr _tmp = pos;
+                _Base_ptr _new = new ft::Node<_Val>();
+
+                while (_tmp != NULL)
+                {
+                    if (_tmp->data < _value)
+                    {
+                        if (_tmp->right == NULL)
+                        {
+                            _new->parent = _tmp;
+                            _tmp->right = _new;
+                            _new->data = _value;
+                            _new->left = NULL;
+                            _new->right = NULL;
+                            _new->color = RED;
+                            break ;
+                        }
+                        else
+                            _tmp = _tmp->right;
+                    }
+                    else
+                    {
+                        if (_tmp->left == NULL)
+                        {
+                            _new->parent = _tmp;
+                            _tmp->left = _new;
+                            _new->data = _value;
+                            _new->left = NULL;
+                            _new->right = NULL;
+                            _new->color = RED;
+                            break ;
+                        }
+                        else
+                            _tmp = _tmp->left;
+                    }
+                }
+                rb_insert_fix(_new);
+                this->_count += 1;
+                _end->left = GetRoot();
+                _root->parent = _end;
+                _end->parent = maximum(_root);
+                return _new;
             }
         }
 
@@ -245,6 +437,7 @@ namespace ft
                 return ;
 
             remove(v);
+            this->_count -= 1;
         }
 
         _Base_ptr phantom_node(_Base_ptr x)
@@ -339,6 +532,9 @@ namespace ft
             // v has 2 children, swap values with successor and recurse
             swap_values(u, root);
             remove(u);
+            _end->left = GetRoot();
+            _root->parent = _end;
+            _end->parent = maximum(_root);
         }
 
         bool has_red_child(_Base_ptr x)
@@ -417,6 +613,18 @@ namespace ft
                 }
             }
         }
+
+        iterator begin() { return iterator(minimum(_root)); }
+        const_iterator begin() const { return const_iterator(minimum(_root)); }
+        reverse_iterator rbegin() { return reverse_iterator(_end); }
+        const_reverse_iterator rbegin() const { return const_reverse_iterator(_end); }
+        
+        iterator end() { return iterator(_end); }
+        const_iterator end() const { return const_iterator(_end); }
+        reverse_iterator rned() { return reverse_iterator(minimum(_root); }
+        const_reverse_iterator rend() const { return const_reverse_iterator(minimum(_root)); }
+
+        bool empty() const { return this->_root == this->_end; }
     };
 };
 
