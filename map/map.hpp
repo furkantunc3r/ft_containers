@@ -198,7 +198,38 @@ namespace ft
 
         ft::pair<iterator, iterator> equal_range(const Key& key)
         {
-            
+            return (ft::make_pair(iterator(lower_bound(key)), iterator(upper_bound(key))));
         }
+
+        ft::pair<const_iterator, const_iterator> equal_range(const Key& key) const
+        {
+            return (ft::make_pair(const_iterator(lower_bound(key)), const_iterator(upper_bound(key))));
+        }
+
+        iterator lower_bound(const Key& key)
+        {
+            return _rb_t.lower_bound(ft::make_pair(key, mapped_type()));
+        }
+
+        const_iterator lower_bound(const Key& key) const
+        {
+            return _rb_t.lower_bound(ft::make_pair(key, mapped_type()));
+        }
+
+        iterator upper_bound(const Key& key)
+        {
+            return _rb_t.upper_bound(ft::make_pair(key, mapped_type()));
+        }
+
+        const_iterator lower_bound(const Key& key) const
+        {
+            return _rb_t.upper_bound(ft::make_pair(key, mapped_type()));
+        }
+
+        key_compare key_comp() const { return key_compare(); }
+
+        value_compare value_comp() const { return value_compare(key_compare()); }
     };
+
+    
 };
