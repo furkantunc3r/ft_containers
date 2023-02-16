@@ -1,8 +1,8 @@
 #ifndef TREE_ITERATOR_HPP
 #define TREE_ITERATOR_HPP
 
-#include <rb_tree.hpp>
-#include "../iterator_traits.hpp"
+#include "rb_tree.hpp"
+#include "../../iterator_traits.hpp"
 
 namespace ft
 {
@@ -28,7 +28,7 @@ namespace ft
 
         reference operator*() const { return static_cast<_Link_type>(_M_node)->data; }
 
-        pointer operator->() const ( return &_M_node->data; )
+        pointer operator->() const { return &_M_node->data; }
 
         _Self& operator++()
         {
@@ -36,7 +36,7 @@ namespace ft
             return *this;
         }
 
-        _Self opeartor++(int)
+        _Self operator++(int)
         {
             _Self _temp = *this;
             _M_node = tree_increment(_M_node);
@@ -45,9 +45,8 @@ namespace ft
 
         _Self& operator--()
         {
-            _Self _temp = *this;
             _M_node = tree_decrement(_M_node);
-            return _temp;
+            return *this;
         }
 
         _Self operator--(int)

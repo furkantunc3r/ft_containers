@@ -4,7 +4,7 @@
 int main()
 {
     ft::rb_tree<int, std::less<int>, std::allocator<int> > tree;
-    
+
     tree.insert(50);
     tree.insert(60);
     tree.insert(40);
@@ -17,10 +17,6 @@ int main()
     tree.insert(31);
     tree.insert(9);
 
-    tree.deleteByVal(30);
-    tree.deleteByVal(50);
-    tree.deleteByVal(60);
-    tree.deleteByVal(35);
 
     
 

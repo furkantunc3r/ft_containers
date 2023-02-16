@@ -2,8 +2,8 @@
 #define RB_TREE_HPP
 
 #include "rb_tree_utils.hpp"
-#include "../reverse_iterator.hpp"
-#include "iterator.hpp"
+#include "tree_iterator.hpp"
+#include "../../reverse_iterator.hpp"
 
 enum {BLACK, RED};
 
@@ -33,31 +33,48 @@ namespace ft
         size_type       _count;
         _Compare        _key_compare;
         allocator_type  _allocator;
-
     
-        rb_tree() : _root(), _end(), _count(0)
+        rb_tree() : _root(), _end(), _count(0), _key_compare(), _allocator()
         {
-            _end = this->_allocator.allocate(1);
-            allocator.construct(_end, _Val());
+            create_node(&this->_end, _Val(), _allocator);
+            _end->color = BLACK;
         }
 
-        rb_tree(const rb_tree& other)
+        rb_tree(const _Compare& _comp, const allocator_type& _a = allocator_type()) : _root(), _end(), _count(0), _key_compare(_comp), _allocator(_a)
         {
-            this->_root = other._root;
-            this->_end = other._end;
-            this->_count = other._count;
-            this->_key_compare = other._key_compare;
-            this->_allocator = other._allocator;
+            create_node(&this->_end, _Val(), _allocator);
+            _end->color = BLACK;
+        }
+
+        rb_tree(const rb_tree& other) : _count(0), _key_compare(other._key_compare), _allocator(other._allocator)
+        {
+            create_node(&this->_end, _Val(), _allocator);
+            if (other._root)
+            {
+                this->_root = copy(this->_root, other._root, _end, _allocator);
+                this->_end->parent = _root->maximum(_root);
+                this->_count = other._count;
+                _end->left = _root;
+            }
+            _end->color = BLACK;
         }
 
         rb_tree& operator=(const rb_tree& other)
         {
-            _m_erase(this->_end);
-            this->_root = other._root;
-            this->end = other._end;
-            this->_count = other._count;
-            this->_key_compare = other._key_compare;
-            this->_allocator = other._allocator;
+            if (other._root != NULL)
+            {
+                _m_erase(this->_end);
+                _root = NULL;
+                _end = NULL;
+                _count = 0;
+                _end = _allocator.allocate(1);
+                _allocator.construct(_end, _Val());
+                _root = _copy(_root, other._root, _end);
+                _end->parent = maximum(_root);
+                _count = other._count;
+                _end->left = _root;
+            }
+            return *this;
         }
 
         ~rb_tree()
@@ -65,23 +82,36 @@ namespace ft
             _m_erase(_end);
         }
 
+        _Base_ptr _copy(_Base_ptr tree, _Base_ptr first, _Base_ptr parent)
+        {
+            if (!first)
+                return _root;
+            create_node(&tree, first->data, _allocator);
+            tree->parent = parent;
+            tree->left = _copy(tree->left, first->left, tree);
+            tree->right = _copy(tree->right, first->right, tree);
+            return tree;
+        }
+
         void _m_erase(_Base_ptr _x)
         {
             if (_x)
-				{
-					_m_erase(_x->left_node);
-					_m_erase(_x->right_node);
-					this->_allocator.destroy(_x);
-					this->_allocator.deallocate(_x, 1);
-				}
+			{
+				_m_erase(_x->left);
+				_m_erase(_x->right);
+				this->_allocator.destroy(_x);
+				this->_allocator.deallocate(_x, 1);
+			}
         }
 
         _Base_ptr GetRoot() { return _root; }
 
-        iterator lower_bound(const value_type& key)
+        _Compare value_compare() const { return _key_compare; }
+
+        iterator lower_bound(const value_type& _value)
         {
             _Base_ptr ret = _end;
-            _Base_ptr _node = _tree;
+            _Base_ptr _node = _root;
             
             while (_node)
             {
@@ -99,7 +129,7 @@ namespace ft
         const_iterator lower_bound(const value_type& _value) const
         {
             _Base_ptr ret = _end;
-            _Base_ptr _node = _tree;
+            _Base_ptr _node = _root;
             
             while (_node)
             {
@@ -114,10 +144,10 @@ namespace ft
             return const_iterator(ret);
         }
 
-        iterator upper_bound(const value_type& key)
+        iterator upper_bound(const value_type& _value)
         {
             _Base_ptr ret = _end;
-            _Base_ptr _node = _tree;
+            _Base_ptr _node = _root;
             
             while (_node)
             {
@@ -135,7 +165,7 @@ namespace ft
         const_iterator upper_bound(const value_type& _value) const
         {
             _Base_ptr ret = _end;
-            _Base_ptr _node = _tree;
+            _Base_ptr _node = _root;
             
             while (_node)
             {
@@ -150,64 +180,40 @@ namespace ft
             return const_iterator(ret);
         }
         
-        void left_rotate(_Base_ptr n)
+        void left_rotate(_Base_ptr x)
         {
-            _Base_ptr _gp = n->parent->parent;
-            _Base_ptr _p = n->parent;
+            _Base_ptr y = x->right;
+            x->right = y->left;
 
-            if (n->left != NULL)
-            {
-                n->left->parent = _p;
-                _p->right = n->left;
-            }
-            if (_gp == NULL)
-            {
-                _root = n;
-                n->left = _p;
-            }
-            else if (_p == _gp->left)
-            {
-                _p->left = n->right;
-                _p->left->left = n;
-                _p->left->parent = _p;
-                n->parent = _p->left;
-                n->right = NULL;
-            }
+            if (y->left != NULL)
+                y->left->parent = x;
+            y->parent = x->parent;
+            if (x->parent == _end)
+                this->_root = y;
+            else if (x == x->parent->left)
+                x->parent->left = y;
             else
-                _gp->right = n;
-            _gp = n;
-            _root->parent = NULL;
+                x->parent->right = y;
+            y->left = x;
+            x->parent = y;
         }
 
-        void right_rotate(_Base_ptr n)
+        void right_rotate(_Base_ptr x)
         {
-            _Base_ptr _gp;
-            _Base_ptr _p = n->parent;
-            if (n->parent->parent != NULL)
-                _gp = n->parent->parent;
+            _Base_ptr y = x->left;
+            x->left = y->right;
+
+            if (y->right != NULL)
+                y->right->parent = x;
+            y->parent = x->parent;
+            if (x->parent == _end)
+                this->_root = y;
+            else if (x == x->parent->right)
+                x->parent->right = y;
             else
-                _gp = NULL;
-            if (n->right != NULL)
-            {
-                n->right->parent = _p;
-                _p->left = n->right;
-            }
-            if (_gp == NULL)
-            {
-                _root = n;
-                n->right = _p;
-                n->right->parent = n;
-            }
-            else if (_p == _gp->right)
-                _gp->right = n;
-            else
-            {
-                n->right = _gp->left;
-                _gp->left->left = NULL;
-                _gp->left = n;
-                n->parent = _gp;
-            }
-            _root->parent = NULL;
+                x->parent->left = y;
+            y->right = x;
+            x->parent = y;
         }
 
         void insert(_Base_ptr pos, const _Val& value)
@@ -216,7 +222,7 @@ namespace ft
                 insert(value);
             else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
                 insert(value);
-            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, _value))
+            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, value))
                 insert(value);
             else
                 insert_with_pos(pos, value);
@@ -225,28 +231,32 @@ namespace ft
         _Base_ptr insert(const _Val& _value)
         {
             if (search(_value))
-                return ;
+                return _root;
             if (_root == NULL)
             {
-                _root = new ft::Node<_Val>();
-                _root->data = _value;
-                _root->parent = NULL;
+                _root = _allocator.allocate(1);
+                _allocator.construct(_root, _value);
                 _root->color = BLACK;
+                this->_count += 1;
+                _end->left = GetRoot();
+                _root->parent = _end;
+                _end->parent = maximum(_root);
             }
             else
             {
                 _Base_ptr _tmp = GetRoot();
-                _Base_ptr _new = new ft::Node<_Val>();
+                _Base_ptr _new;
+                _new = _allocator.allocate(1);
 
                 while (_tmp != NULL)
                 {
-                    if (_tmp->data < _value)
+                    if (value_compare()(_tmp->data, _value))
                     {
                         if (_tmp->right == NULL)
                         {
+                            _allocator.construct(_new, _value);
                             _new->parent = _tmp;
                             _tmp->right = _new;
-                            _new->data = _value;
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -259,9 +269,9 @@ namespace ft
                     {
                         if (_tmp->left == NULL)
                         {
+                            _allocator.construct(_new, _value);
                             _new->parent = _tmp;
                             _tmp->left = _new;
-                            _new->data = _value;
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -278,33 +288,40 @@ namespace ft
                 _end->parent = maximum(_root);
                 return _new;
             }
+            return _root;
         }
 
         _Base_ptr insert_with_pos(_Base_ptr pos, const _Val& _value)
         {
-            if (search(_value))
-                return ;
+            _Base_ptr _tmp = search(_value);
+            if (_tmp)
+                return _root;
             if (_root == NULL)
             {
-                _root = new ft::Node<_Val>();
-                _root->data = _value;
+                _root = _allocator.allocate(1);
+                _allocator.construct(_root, _value);
                 _root->parent = NULL;
                 _root->color = BLACK;
+                this->_count += 1;
+                _end->left = GetRoot();
+                _root->parent = _end;
+                _end->parent = maximum(_root);
             }
             else
             {
                 _Base_ptr _tmp = pos;
-                _Base_ptr _new = new ft::Node<_Val>();
+                _Base_ptr _new;
+                _new = _allocator.allocate(1);
 
                 while (_tmp != NULL)
                 {
-                    if (_tmp->data < _value)
+                    if (value_compare()(_tmp->data, _value))
                     {
                         if (_tmp->right == NULL)
                         {
                             _new->parent = _tmp;
                             _tmp->right = _new;
-                            _new->data = _value;
+                            _allocator.construct(_new, _value);
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -319,7 +336,7 @@ namespace ft
                         {
                             _new->parent = _tmp;
                             _tmp->left = _new;
-                            _new->data = _value;
+                            _allocator.construct(_new, _value);
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -336,6 +353,7 @@ namespace ft
                 _end->parent = maximum(_root);
                 return _new;
             }
+            return _root;
         }
 
         void rb_insert_fix(_Base_ptr n)
@@ -361,27 +379,32 @@ namespace ft
                     {
                         n->parent->color = BLACK;
                         _gp->color = RED;
-                        right_rotate(n->parent);
+                        right_rotate(_gp);
                     }
                 }
                 else if (_gp != NULL && n->parent == _gp->right)
                 {
-                    if (_gp->left->color == RED)
+                    if (_gp->left != NULL && _gp->left->color == RED)
                     {
-                        _gp->right->color = BLACK;
                         _gp->left->color = BLACK;
+                        _gp->right->color = BLACK;
                         _gp->color = RED;
                         n = _gp;
                     }
-                    else if (n == n->parent->left)
+                    else
                     {
-                        n = n->parent;
-                        right_rotate(n);
+                        if (n == n->parent->left)
+                        {
+                            n = n->parent;
+                            right_rotate(n);
+                        }
                         n->parent->color = BLACK;
                         _gp->color = RED;
                         left_rotate(_gp);
                     }
                 }
+                if (n == _root)
+                    break ;
             }
             _root->color = BLACK;
         }
@@ -400,25 +423,25 @@ namespace ft
             return n;
         }
 
-        _Base_ptr search(_Val n)
+        _Base_ptr search(_Val n) const
         {
             _Base_ptr _tmp = _root;
 
             while (_tmp != NULL)
             {
-                if (n < _tmp->data)
+                if (value_compare()(n, _tmp->data))
                 {
                     if (_tmp->left == NULL)
-                        break ;
+                        return NULL;
                     else
                         _tmp = _tmp->left;
                 }
-                else if (n == _tmp->data)
+                else if (n.first == _tmp->data.first)
                     break ;
                 else
                 {
                     if (_tmp->right == NULL)
-                        break ;
+                        return NULL;
                     else
                         _tmp = _tmp->right;
                 }
@@ -437,7 +460,6 @@ namespace ft
                 return ;
 
             remove(v);
-            this->_count -= 1;
         }
 
         _Base_ptr phantom_node(_Base_ptr x)
@@ -455,11 +477,27 @@ namespace ft
 
         void swap_values(_Base_ptr u, _Base_ptr v)
         {
-            _Val _tmp;
-
-            _tmp = u->data;
-            u->data = v->data;
-            v->data = _tmp;
+            // std::swap(u, v);
+            if (v->parent && is_on_left(v))
+            {
+                v->parent->left = u;
+                u->parent = v->parent;
+                if (v->right)
+                {
+                    u->right = v->right;
+                    v->right->parent = u;
+                }
+            }
+            else
+            {
+                v->parent->right = u;
+                u->parent = v->parent;
+                if (v->left)
+                {
+                    u->left = v->left;
+                    v->right->parent = u;
+                }
+            }
         }
 
         bool is_on_left(_Base_ptr x)
@@ -494,14 +532,17 @@ namespace ft
                     if (uvBlack)
                         fix_double_black(root);
                     else
+                    {
                         if (get_sibling(root) != NULL)
                             get_sibling(root)->color = RED;
+                    }
                     if (is_on_left(root))
                         parent->left = NULL;
                     else
                         parent->right = NULL;
                 }
-                delete root;
+                _allocator.destroy(root);
+                _allocator.deallocate(root, 1);
                 return ;
             }
 
@@ -509,9 +550,11 @@ namespace ft
             {
                 if (root == _root)
                 {
-                    root->data = u->data;
+                    // root->data = u->data; SWAP ADDED HERE
+                    swap_values(root, u);
                     root->left = root->right = NULL;
-                    delete u;
+                    _allocator.destroy(u);
+                    _allocator.deallocate(u, 1);
                 }
                 else
                 {
@@ -519,7 +562,8 @@ namespace ft
                         parent->left = u;
                     else
                         parent->right = u;
-                    delete root;
+                    _allocator.destroy(root);
+                    _allocator.deallocate(root, 1);
                     u->parent = parent;
                     if (uvBlack)
                         fix_double_black(u);
@@ -532,6 +576,7 @@ namespace ft
             // v has 2 children, swap values with successor and recurse
             swap_values(u, root);
             remove(u);
+            this->_count -= 1;
             _end->left = GetRoot();
             _root->parent = _end;
             _end->parent = maximum(_root);
@@ -615,17 +660,61 @@ namespace ft
         }
 
         iterator begin() { return iterator(minimum(_root)); }
-        const_iterator begin() const { return const_iterator(minimum(_root)); }
-        reverse_iterator rbegin() { return reverse_iterator(_end); }
-        const_reverse_iterator rbegin() const { return const_reverse_iterator(_end); }
+        const_iterator begin() const { return const_iterator(this->_root->minimum(_end)); }
+        reverse_iterator rbegin() { return reverse_iterator(end()); }
+        const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
         
         iterator end() { return iterator(_end); }
         const_iterator end() const { return const_iterator(_end); }
-        reverse_iterator rned() { return reverse_iterator(minimum(_root); }
-        const_reverse_iterator rend() const { return const_reverse_iterator(minimum(_root)); }
+        reverse_iterator rend() { return reverse_iterator(begin()); }
+        const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
-        bool empty() const { return this->_root == this->_end; }
+        bool empty() const { return this->_count == 0; }
     };
+
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator==(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return _x._count == _y._count
+                && ft::equal(_x.begin(), _x.end(), _y.begin());
+        }
+
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator<(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return ft::lexicographical_compare(_x.begin(), _x.end(),
+                                        _y.begin(), _y.end());
+        }
+    
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator!=(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return !(_x == _y);
+        }
+    
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator>(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return _y < _x;
+        }
+    
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator<=(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return !(_y < _x);
+        }
+    
+    template<typename _Val, typename _Compare, typename _Alloc>
+    bool operator>=(const ft::rb_tree<_Val, _Compare, _Alloc>& _x,
+        const ft::rb_tree<_Val, _Compare, _Alloc>& _y)
+        {
+            return !(_x < _y);
+        }
 };
 
 #endif

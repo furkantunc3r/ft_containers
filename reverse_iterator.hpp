@@ -31,7 +31,8 @@ namespace ft
         template<typename _Iter>
         reverse_iterator(const reverse_iterator<_Iter>& __x) : current(__x.base()) { }
 
-        iterator_type base() const { return current; }
+        iterator_type base() const { return this->current; }
+        
         reference operator*() const 
         {
             _Iterator __tmp = current;
