@@ -293,14 +293,13 @@ namespace ft
 
         _Base_ptr insert_with_pos(_Base_ptr pos, const _Val& _value)
         {
-            _Base_ptr _tmp = search(_value);
-            if (_tmp)
+            if (search(_value))
                 return _root;
             if (_root == NULL)
             {
                 _root = _allocator.allocate(1);
                 _allocator.construct(_root, _value);
-                _root->parent = NULL;
+                // _root->parent = NULL;
                 _root->color = BLACK;
                 this->_count += 1;
                 _end->left = GetRoot();
@@ -319,9 +318,9 @@ namespace ft
                     {
                         if (_tmp->right == NULL)
                         {
+                            _allocator.construct(_new, _value);
                             _new->parent = _tmp;
                             _tmp->right = _new;
-                            _allocator.construct(_new, _value);
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -334,9 +333,9 @@ namespace ft
                     {
                         if (_tmp->left == NULL)
                         {
+                            _allocator.construct(_new, _value);
                             _new->parent = _tmp;
                             _tmp->left = _new;
-                            _allocator.construct(_new, _value);
                             _new->left = NULL;
                             _new->right = NULL;
                             _new->color = RED;
@@ -411,16 +410,16 @@ namespace ft
 
         _Base_ptr minimum(_Base_ptr n)
         {
-            while (n->left != NULL)
-                n = n->left;
-            return n;
+            if (!n || !n->left)
+                return n;
+            return minimum(n->left);
         }
 
         _Base_ptr maximum(_Base_ptr n)
         {
-            while (n->right != NULL)
-                n = n->right;
-            return n;
+            if (!n || !n->right)
+                return n;
+            return maximum(n->right);
         }
 
         _Base_ptr search(_Val n) const
@@ -460,6 +459,10 @@ namespace ft
                 return ;
 
             remove(v);
+            _end->left = GetRoot();
+            _end->parent = maximum(_root);
+            if (_root)
+                _root->parent = _end;
         }
 
         _Base_ptr phantom_node(_Base_ptr x)
@@ -526,7 +529,7 @@ namespace ft
             if (u == NULL)
             {
                 if (root == _root)
-                    root = NULL;
+                    _root = NULL;
                 else
                 {
                     if (uvBlack)
@@ -543,6 +546,7 @@ namespace ft
                 }
                 _allocator.destroy(root);
                 _allocator.deallocate(root, 1);
+                this->_count -= 1;
                 return ;
             }
 
@@ -550,11 +554,11 @@ namespace ft
             {
                 if (root == _root)
                 {
-                    // root->data = u->data; SWAP ADDED HERE
-                    swap_values(root, u);
-                    root->left = root->right = NULL;
-                    _allocator.destroy(u);
-                    _allocator.deallocate(u, 1);
+                    _root = u;
+                    _root->left = _root->right = NULL;
+                    _allocator.destroy(root);
+                    _allocator.deallocate(root, 1);
+                    this->_count -= 1;
                 }
                 else
                 {
@@ -564,6 +568,7 @@ namespace ft
                         parent->right = u;
                     _allocator.destroy(root);
                     _allocator.deallocate(root, 1);
+                    this->_count -= 1;
                     u->parent = parent;
                     if (uvBlack)
                         fix_double_black(u);
@@ -574,12 +579,17 @@ namespace ft
             }
 
             // v has 2 children, swap values with successor and recurse
-            swap_values(u, root);
+            _Val _value = u->data;
+            _Base_ptr _parent = root->parent;
+            _Base_ptr _left = root->left;
+            _Base_ptr _right = root->right;
+            _allocator.destroy(root);
+            _allocator.construct(root, _value);
+            root->color = u->color;
+            root->parent = _parent;
+            root->left = _left;
+            root->right = _right;
             remove(u);
-            this->_count -= 1;
-            _end->left = GetRoot();
-            _root->parent = _end;
-            _end->parent = maximum(_root);
         }
 
         bool has_red_child(_Base_ptr x)
@@ -605,11 +615,11 @@ namespace ft
                 {
                     parent->color = RED;
                     sibling->color = BLACK;
-                if (is_on_left(sibling))
-                    right_rotate(parent);
-                else
-                    left_rotate(parent);
-                fix_double_black(x);
+                    if (is_on_left(sibling))
+                        right_rotate(parent);
+                    else
+                        left_rotate(parent);
+                    fix_double_black(x);
                 }
                 else
                 {
@@ -625,8 +635,9 @@ namespace ft
                             }
                             else
                             {
-                                sibling->left->color = parent->color;
-                                right_rotate(sibling);
+                                // CHANGEED
+                                sibling->right->color = parent->color;
+                                // right_rotate(sibling);
                                 left_rotate(parent);
                             }
                         }

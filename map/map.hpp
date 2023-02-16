@@ -159,10 +159,12 @@ namespace ft
         
         void erase(iterator first, iterator last)
         {
+            iterator temp;
             while (first != last)
             {
-                _rb_t.deleteByVal(*first);
+                temp = first;
                 first++;
+                _rb_t.deleteByVal(temp._M_node->data);
             }
         }
 
