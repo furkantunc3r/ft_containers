@@ -435,7 +435,7 @@ namespace ft
                     else
                         _tmp = _tmp->left;
                 }
-                else if (n.first == _tmp->data.first)
+                else if (n == _tmp->data)
                     break ;
                 else
                 {
