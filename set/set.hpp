@@ -108,7 +108,11 @@ namespace ft
             }
         }
 
-        void erase(iterator pos) { _rb_t.deleteByVal(pos._M_node->data); }
+        void erase(iterator pos)
+        { 
+            if (size() != 0)
+                _rb_t.deleteByVal(pos._M_node->data);
+        }
 
         void erase(iterator first, iterator last)
         {

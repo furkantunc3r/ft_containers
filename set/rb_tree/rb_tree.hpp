@@ -48,15 +48,15 @@ namespace ft
 
         rb_tree(const rb_tree& other) : _count(0), _key_compare(other._key_compare), _allocator(other._allocator)
         {
-            create_node(&this->_end, _Val(), _allocator);
             if (other._root)
             {
+                create_node(&this->_end, _Val(), _allocator);
                 this->_root = copy(this->_root, other._root, _end, _allocator);
                 this->_end->parent = _root->maximum(_root);
                 this->_count = other._count;
                 _end->left = _root;
+                _end->color = BLACK;
             }
-            _end->color = BLACK;
         }
 
         void clear()

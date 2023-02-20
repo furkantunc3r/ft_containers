@@ -40,6 +40,8 @@ namespace ft
     template<typename _Base_ptr>
     _Base_ptr tree_increment(_Base_ptr _x)
     {
+        if (_x == NULL)
+            return _x;
         if (_x->right)
             _x = _x->minimum(_x->right);
         else
@@ -65,6 +67,8 @@ namespace ft
     template<typename _Tp>
     Node<_Tp> *tree_decrement(Node<_Tp>* _x)
     {
+        if (_x == NULL)
+            return _x;
         Node<_Tp>* _y;
 
         if (!_x && _x->parent->parent == _x)
