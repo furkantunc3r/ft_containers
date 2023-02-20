@@ -142,13 +142,7 @@ namespace ft
             std::swap(this->_rb_t._allocator, other._rb_t._allocator);
         }
 
-        void clear()
-        {
-            _rb_t._m_erase(_rb_t._root);
-            _rb_t._end = NULL;
-            _rb_t._root = NULL;
-            _rb_t._count = 0;
-        }
+        void clear() { _rb_t.clear(); }
 
         key_compare key_comp() const { return key_compare();}
 

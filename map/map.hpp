@@ -92,6 +92,16 @@ namespace ft
             return _tmp->data.second;
         }
 
+        const T& at(const Key& key) const
+        {
+            _Base_ptr _tmp;
+
+            _tmp = this->_rb_t.search(ft::make_pair(key, T()));
+            if (!_tmp)
+                throw std::out_of_range("No such elemnt in map!");
+            return _tmp->data.second;
+        }
+
         mapped_type& operator[]( const key_type& key )
         {
             iterator i = iterator(lower_bound(key));
@@ -116,13 +126,7 @@ namespace ft
 
         size_type max_size() const { return _rb_t._allocator.max_size(); }
 
-        void clear()
-        { 
-            _rb_t._m_erase(_rb_t._root);
-            _rb_t._end = NULL;
-            _rb_t._root = NULL;
-            _rb_t._count = 0;
-        }
+        void clear() { _rb_t.clear(); }
 
         ft::pair<iterator, bool>
         insert(const value_type& value)

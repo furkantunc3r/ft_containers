@@ -24,16 +24,16 @@ namespace ft
         
         _Base_ptr minimum(_Base_ptr n)
         {
-            while (n && n->left != NULL)
-                n = n->left;
-            return n;
+            if (!n || !n->left)
+                return n;
+            return minimum(n->left);
         }
 
         _Base_ptr maximum(_Base_ptr n)
         {
-            while (n && n->right != NULL)
-                n = n->right;
-            return n;
+            if (!n || !n->right)
+                return n;
+            return maximum(n->right);
         }
     };
 

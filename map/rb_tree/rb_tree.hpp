@@ -59,22 +59,47 @@ namespace ft
             _end->color = BLACK;
         }
 
-        rb_tree& operator=(const rb_tree& other)
+        void clear()
         {
-            if (other._root != NULL)
+            _m_erase(_end);
+            _end = 0;
+            _root = 0;
+            _count = 0;
+        }
+
+        rb_tree& operator=(const rb_tree& other) // CHANGED
+        {
+            if (this != &other)
             {
-                _m_erase(this->_end);
-                _root = NULL;
-                _end = NULL;
-                _count = 0;
-                _end = _allocator.allocate(1);
-                _allocator.construct(_end, _Val());
-                _root = _copy(_root, other._root, _end);
-                _end->parent = maximum(_root);
-                _count = other._count;
-                _end->left = _root;
+                clear();
+                _key_compare = other._key_compare;
+                _allocator = other._allocator;
+                if (other._root != 0)
+                {
+                    create_node(&_end, _Val(), _allocator);
+                    _root = _copy(_root, other._root, _end);
+                    _count = other._count;
+                    _end->left = _root;
+                    _end->parent = _root->maximum(_root);
+                }
             }
             return *this;
+
+
+            // if (other._root != NULL)
+            // {
+            //     _m_erase(this->_end);
+            //     _root = NULL;
+            //     _end = NULL;
+            //     _count = 0;
+            //     _end = _allocator.allocate(1);
+            //     _allocator.construct(_end, _Val());
+            //     _root = _copy(_root, other._root, _end);
+            //     _end->parent = maximum(_root);
+            //     _count = other._count;
+            //     _end->left = _root;
+            // }
+            // return *this;
         }
 
         ~rb_tree()
@@ -230,6 +255,9 @@ namespace ft
 
         _Base_ptr insert(const _Val& _value)
         {
+            if (!_end)
+                create_node(&_end, _Val(), _allocator);
+                
             if (search(_value))
                 return _root;
             if (_root == NULL)
@@ -671,7 +699,7 @@ namespace ft
             }
         }
 
-        iterator begin() { return iterator(minimum(_root)); }
+        iterator begin() { return iterator(this->_root->minimum(_end)); }
         const_iterator begin() const { return const_iterator(this->_root->minimum(_end)); }
         reverse_iterator rbegin() { return reverse_iterator(end()); }
         const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
