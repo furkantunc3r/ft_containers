@@ -30,6 +30,47 @@ namespace ft
             pointer _end;
             pointer _end_of_storage;
 
+        private:
+            template<class InputIt>
+            void _insert(iterator pos, InputIt first, InputIt last, std::input_iterator_tag)
+            {
+                for(; first != last; first++, pos++)
+                    pos = insert(pos, *first);
+            }
+
+            template<class randIt>
+            void _insert(iterator pos, randIt first, randIt last, std::random_access_iterator_tag)
+            {
+                if (first == last)
+                    return;
+                size_type len = (last - first);
+                size_type oldCap = capacity();
+                size_type newCap = !oldCap ? len : oldCap;
+
+                if ((size() + len) > newCap * 2)
+                    newCap = size() + len;
+                else if ((size() + len) > newCap)
+                    newCap *= 2;
+                pointer newData = this->_allocator.allocate(newCap);
+                pointer newEnd = newData;
+                
+                for(iterator it = begin(); it != pos; it++, newEnd++)
+                    this->_allocator.construct(newEnd, *it);
+                for(; first != last; first++, newEnd++)
+                    this->_allocator.construct(newEnd, *first);
+                for(iterator it = pos; it != end(); it++, newEnd++)
+                    this->_allocator.construct(newEnd, *it);
+                if (oldCap)
+                {
+                    clear();
+                    this->_allocator.deallocate(this->_begin, oldCap);
+                }
+                this->_begin = newData;
+                this->_end = newEnd;
+                this->_end_of_storage = this->_begin + newCap;
+            }
+        
+        public:
             vector() : _begin(0), _end(0), _end_of_storage(0)
             {
                 this->_begin = NULL;
@@ -350,8 +391,8 @@ namespace ft
             template<class InputIt>
             iterator insert(iterator pos, InputIt first, InputIt last, typename enable_if<!is_integral<InputIt>::value, bool>::type = true)
             {
-                for (; first != last; ++first, pos++)
-                    pos = insert(pos, *first);
+                typedef typename ft::iterator_traits<InputIt>::iterator_category iter;
+                _insert(pos, first, last, iter());
                 return pos;
             }
 
