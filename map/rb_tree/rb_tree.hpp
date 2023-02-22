@@ -458,17 +458,17 @@ namespace ft
             return _tmp;
         }
 
-        void deleteByVal(_Val n)
+        void deleteByVal(iterator n)
         {
             if (_root == NULL)
                 return ;
             
-            _Base_ptr v = search(n);
+            // _Base_ptr v = search(n);
 
-            if (v->data != n)
-                return ;
+            // if (v->data != n)
+            //     return ;
 
-            remove(v);
+            remove(n._M_node);
             _end->left = GetRoot();
             _end->parent = maximum(_root);
             if (_root)
