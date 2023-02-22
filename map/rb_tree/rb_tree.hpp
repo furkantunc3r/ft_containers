@@ -241,93 +241,15 @@ namespace ft
             x->parent = y;
         }
 
-        void insert(_Base_ptr pos, const _Val& value)
-        {
-            if (!_root || _root == _end)
-                insert(value);
-            else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
-                insert(value);
-            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, value))
-                insert(value);
-            else
-                insert_with_pos(pos, value);
-        }
-
-        _Base_ptr insert(const _Val& _value)
+        _Base_ptr insert_at(_Base_ptr pos, const value_type& _value)
         {
             if (!_end)
                 create_node(&_end, _Val(), _allocator);
-                
-            if (search(_value))
-                return _root;
+
             if (_root == NULL)
             {
                 _root = _allocator.allocate(1);
                 _allocator.construct(_root, _value);
-                _root->color = BLACK;
-                this->_count += 1;
-                _end->left = GetRoot();
-                _root->parent = _end;
-                _end->parent = maximum(_root);
-            }
-            else
-            {
-                _Base_ptr _tmp = GetRoot();
-                _Base_ptr _new;
-                _new = _allocator.allocate(1);
-
-                while (_tmp != NULL)
-                {
-                    if (value_compare()(_tmp->data, _value))
-                    {
-                        if (_tmp->right == NULL)
-                        {
-                            _allocator.construct(_new, _value);
-                            _new->parent = _tmp;
-                            _tmp->right = _new;
-                            _new->left = NULL;
-                            _new->right = NULL;
-                            _new->color = RED;
-                            break ;
-                        }
-                        else
-                            _tmp = _tmp->right;
-                    }
-                    else
-                    {
-                        if (_tmp->left == NULL)
-                        {
-                            _allocator.construct(_new, _value);
-                            _new->parent = _tmp;
-                            _tmp->left = _new;
-                            _new->left = NULL;
-                            _new->right = NULL;
-                            _new->color = RED;
-                            break ;
-                        }
-                        else
-                            _tmp = _tmp->left;
-                    }
-                }
-                rb_insert_fix(_new);
-                this->_count += 1;
-                _end->left = GetRoot();
-                _root->parent = _end;
-                _end->parent = maximum(_root);
-                return _new;
-            }
-            return _root;
-        }
-
-        _Base_ptr insert_with_pos(_Base_ptr pos, const _Val& _value)
-        {
-            if (search(_value))
-                return _root;
-            if (_root == NULL)
-            {
-                _root = _allocator.allocate(1);
-                _allocator.construct(_root, _value);
-                // _root->parent = NULL;
                 _root->color = BLACK;
                 this->_count += 1;
                 _end->left = GetRoot();
@@ -383,6 +305,37 @@ namespace ft
             return _root;
         }
 
+        _Base_ptr insert(const _Val& _value)
+        {
+            int exists = 0;
+            _Base_ptr _new = NULL;
+            _Base_ptr insert_pos = search(&exists, _value);
+
+            if (!exists)
+            {
+                _new = insert_at(insert_pos, _value);
+                return _new;
+            }
+            return insert_pos;
+        }
+
+        void insert(_Base_ptr pos, const _Val& value)
+        {
+            int exists = 0;
+            if (!_root || _root == _end)
+                insert(value);
+            else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
+                insert(value);
+            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, value))
+                insert(value);
+            else
+            {
+                search(&exists, value);
+                if (!exists)
+                    insert_at(pos, value);
+            }
+        }
+        
         void rb_insert_fix(_Base_ptr n)
         {
             while (n->parent != NULL && n->parent->color == RED)
@@ -469,6 +422,35 @@ namespace ft
                 {
                     if (_tmp->right == NULL)
                         return NULL;
+                    else
+                        _tmp = _tmp->right;
+                }
+            }
+            return _tmp;
+        }
+
+        _Base_ptr search(int *exists, _Val n) const
+        {
+            _Base_ptr _tmp = _root;
+
+            while (_tmp != NULL)
+            {
+                if (value_compare()(n, _tmp->data))
+                {
+                    if (_tmp->left == NULL)
+                        break ;
+                    else
+                        _tmp = _tmp->left;
+                }
+                else if (n.first == _tmp->data.first)
+                {
+                    *exists = 1;
+                    break ;
+                }
+                else
+                {
+                    if (_tmp->right == NULL)
+                        break ;
                     else
                         _tmp = _tmp->right;
                 }

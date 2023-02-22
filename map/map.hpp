@@ -131,13 +131,15 @@ namespace ft
         ft::pair<iterator, bool>
         insert(const value_type& value)
         {
-            _Base_ptr ret = _rb_t.search(value);
+            int exists = 0;
+            _Base_ptr pos = this->_rb_t.search(&exists, value);
+            if (!exists)
+            {
+                _Base_ptr _new = _rb_t.insert_at(pos, value);
+                return ft::pair<iterator, bool>(iterator(_new), true);
+            }
 
-            if (ret)
-                return ft::pair<iterator, bool>(iterator(ret), false);
-            else
-                _rb_t.insert(value);
-            return ft::pair<iterator, bool>(iterator(_rb_t.search(value)), true);
+            return ft::pair<iterator, bool>(iterator(pos), false);
         }
 
         iterator insert(iterator pos, const value_type& value)
