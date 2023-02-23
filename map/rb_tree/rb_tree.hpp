@@ -67,7 +67,7 @@ namespace ft
             _count = 0;
         }
 
-        rb_tree& operator=(const rb_tree& other) // CHANGED
+        rb_tree& operator=(const rb_tree& other)
         {
             if (this != &other)
             {
@@ -84,22 +84,6 @@ namespace ft
                 }
             }
             return *this;
-
-
-            // if (other._root != NULL)
-            // {
-            //     _m_erase(this->_end);
-            //     _root = NULL;
-            //     _end = NULL;
-            //     _count = 0;
-            //     _end = _allocator.allocate(1);
-            //     _allocator.construct(_end, _Val());
-            //     _root = _copy(_root, other._root, _end);
-            //     _end->parent = maximum(_root);
-            //     _count = other._count;
-            //     _end->left = _root;
-            // }
-            // return *this;
         }
 
         ~rb_tree()
@@ -241,6 +225,37 @@ namespace ft
             x->parent = y;
         }
 
+        _Base_ptr insert(const _Val& _value)
+        {
+            int exists = 0;
+            _Base_ptr _new = NULL;
+            _Base_ptr insert_pos = search(&exists, _value);
+
+            if (!exists)
+            {
+                _new = insert_at(insert_pos, _value);
+                return _new;
+            }
+            return insert_pos;
+        }
+
+        void insert(_Base_ptr pos, const _Val& value)
+        {
+            int exists = 0;
+            if (!_root || _root == _end)
+                insert(value);
+            else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
+                insert(value);
+            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, value))
+                insert(value);
+            else
+            {
+                search(&exists, value);
+                if (!exists)
+                    insert_at(pos, value);
+            }
+        }
+
         _Base_ptr insert_at(_Base_ptr pos, const value_type& _value)
         {
             if (!_end)
@@ -303,37 +318,6 @@ namespace ft
                 return _new;
             }
             return _root;
-        }
-
-        _Base_ptr insert(const _Val& _value)
-        {
-            int exists = 0;
-            _Base_ptr _new = NULL;
-            _Base_ptr insert_pos = search(&exists, _value);
-
-            if (!exists)
-            {
-                _new = insert_at(insert_pos, _value);
-                return _new;
-            }
-            return insert_pos;
-        }
-
-        void insert(_Base_ptr pos, const _Val& value)
-        {
-            int exists = 0;
-            if (!_root || _root == _end)
-                insert(value);
-            else if (value_compare()(_root->data, pos->data) && value_compare()(value, _root->data))
-                insert(value);
-            else if (value_compare()(pos->data, _root->data) && value_compare()(_root->data, value))
-                insert(value);
-            else
-            {
-                search(&exists, value);
-                if (!exists)
-                    insert_at(pos, value);
-            }
         }
         
         void rb_insert_fix(_Base_ptr n)
@@ -463,222 +447,180 @@ namespace ft
             if (_root == NULL)
                 return ;
             
-            // _Base_ptr v = search(n);
-
-            // if (v->data != n)
-            //     return ;
-
-            remove(n._M_node);
+            remove(n._M_node);    
+            this->_allocator.destroy(n._M_node);
+            this->_allocator.deallocate(n._M_node, 1);
+            this->_count--;
             _end->left = GetRoot();
             _end->parent = maximum(_root);
             if (_root)
                 _root->parent = _end;
         }
-
-        _Base_ptr phantom_node(_Base_ptr x)
+        
+        void tree_transplant_node(_Base_ptr pos, _Base_ptr node)
         {
-            if (x->left != NULL && x->right != NULL)
-                return maximum(x->left);
-            if (x->left == NULL && x->right == NULL)
-                return NULL;
-
-            if (x->left != NULL)
-                return x->left;
+            node->color = pos->color;
+            node->parent = pos->parent;
+            
+            if (pos == pos->parent->left)
+                node->parent->left = node;
             else
-                return x->right;
+                node->parent->right = node;
+            node->left = pos->left;
+            node->left->parent = node;
+            node->right = pos->right;
+            if (node->right)
+                node->right->parent = node;
         }
 
-        void swap_values(_Base_ptr u, _Base_ptr v)
+        void remove(_Base_ptr target)
         {
-            // std::swap(u, v);
-            if (v->parent && is_on_left(v))
+            _Base_ptr y = target;
+            // Find node to replace target if target has 2 child (in order successor)
+            if (y->left != NULL && y->right != NULL)
+                y = minimum(target->right);
+
+            // x is NULL or y's only child
+            _Base_ptr x;
+            if (y->left != NULL)
+                x = y->left;
+            else
+                x = y->right;
+
+            // keep track of x's parent
+            _Base_ptr x_parent = y->parent;
+
+            // Replace y with x
+            if (x != NULL)
+                x->parent = y->parent;
+            if (y == y->parent->left)
             {
-                v->parent->left = u;
-                u->parent = v->parent;
-                if (v->right)
-                {
-                    u->right = v->right;
-                    v->right->parent = u;
-                }
+                y->parent->left = x;
+                if (_root == y)
+                    _root = x;
             }
             else
             {
-                v->parent->right = u;
-                u->parent = v->parent;
-                if (v->left)
+                // If y is target's right child, update x_parent because target will be replaced by y later
+                if (target->right == y)
+                    x_parent = y;
+                y->parent->right = x;
+            }
+
+            // Keep track of removed color before possibly transplanting y into target's place
+            bool removed_black = false;
+            if (y->color == BLACK)
+                removed_black = true;
+            
+            // If y is target's in order successor, transplant y into target's place
+            if (y != target)
+            {
+                tree_transplant_node(target, y);
+                if (target == _root)
+                    _root = y;
+            }
+
+            // Balance tree only if a black node was removed
+            if (removed_black)
+            {
+                // Tree is empty, nothing to do(root double black case)
+                if (_root == NULL)
+                    return;
+
+                // x is red, color it black
+                if (x != NULL)
                 {
-                    u->left = v->left;
-                    v->right->parent = u;
+                    x->color = BLACK;
+                    return ;
                 }
+                tree_delete_fix(x_parent);
             }
         }
 
-        bool is_on_left(_Base_ptr x)
+        void tree_delete_fix(_Base_ptr x_parent)
         {
-            if (x == x->parent->left)
-                return 1;
-            return 0;
-        }
+            // Double black nodes always start as a null pointer
+            _Base_ptr x = NULL;
 
-        _Base_ptr get_sibling(_Base_ptr x)
-        {
-            if (x->parent == NULL)
-                return NULL;
-            if (is_on_left(x))
-                return x->parent->right;
-            return x->parent->left;  
-        }
-
-        void remove(_Base_ptr root)
-        {
-            _Base_ptr u = phantom_node(root);
-            _Base_ptr parent = root->parent;
-
-            bool uvBlack = ((u == NULL || u->color == BLACK) && (root->color == BLACK));
-
-            if (u == NULL)
+            while (_root != x && (x == NULL || x->color == BLACK))
             {
-                if (root == _root)
-                    _root = NULL;
-                else
+                if (x == x_parent->left)
                 {
-                    if (uvBlack)
-                        fix_double_black(root);
-                    else
+                    _Base_ptr w = x_parent->right;
+
+                    if (w->color == RED) // case 1
                     {
-                        if (get_sibling(root) != NULL)
-                            get_sibling(root)->color = RED;
+                        x_parent->color = RED;
+                        w->color = BLACK;
+                        left_rotate(x_parent);
+                        w = x_parent->right;
                     }
-                    if (is_on_left(root))
-                        parent->left = NULL;
-                    else
-                        parent->right = NULL;
-                }
-                _allocator.destroy(root);
-                _allocator.deallocate(root, 1);
-                this->_count -= 1;
-                return ;
-            }
 
-            if  (root->left == NULL || root->right == NULL)
-            {
-                if (root == _root)
-                {
-                    _root = u;
-                    _root->left = _root->right = NULL;
-                    _allocator.destroy(root);
-                    _allocator.deallocate(root, 1);
-                    this->_count -= 1;
-                }
-                else
-                {
-                    if (is_on_left(root))
-                        parent->left = u;
-                    else
-                        parent->right = u;
-                    _allocator.destroy(root);
-                    _allocator.deallocate(root, 1);
-                    this->_count -= 1;
-                    u->parent = parent;
-                    if (uvBlack)
-                        fix_double_black(u);
-                    else
-                        u->color = BLACK;
-                }
-                return ;
-            }
-
-            // v has 2 children, swap values with successor and recurse
-            _Val _value = u->data;
-            _Base_ptr _parent = root->parent;
-            _Base_ptr _left = root->left;
-            _Base_ptr _right = root->right;
-            _allocator.destroy(root);
-            _allocator.construct(root, _value);
-            root->color = u->color;
-            root->parent = _parent;
-            root->left = _left;
-            root->right = _right;
-            remove(u);
-        }
-
-        bool has_red_child(_Base_ptr x)
-        {
-            if ((x->left != NULL && x->left->color == RED) || (x->right != NULL && x->right->color == RED))
-                return 1;
-            return 0;
-        }
-
-        void fix_double_black(_Base_ptr x)
-        {
-            if (x == _root)
-                return ;
-
-            _Base_ptr sibling = get_sibling(x);
-            _Base_ptr parent = x->parent;
-
-            if (sibling == NULL)
-                fix_double_black(parent);
-            else
-            {
-                if (sibling->color == RED)
-                {
-                    parent->color = RED;
-                    sibling->color = BLACK;
-                    if (is_on_left(sibling))
-                        right_rotate(parent);
-                    else
-                        left_rotate(parent);
-                    fix_double_black(x);
-                }
-                else
-                {
-                    if (has_red_child(sibling))
+                    if ((w->left == NULL || w->left->color == BLACK) && (w->left == NULL || w->right->color == BLACK)) // case 2 && case 3
                     {
-                        if (sibling->left != NULL && sibling->left->color == RED)
+                        w->color = RED;
+                        x = x_parent;
+                        x_parent = x->parent;
+                    }
+                    else
+                    {
+                        if ((w->right == NULL || w->right->color == BLACK)) // case 4
                         {
-                            if (is_on_left(sibling))
-                            {
-                                sibling->left->color = sibling->color;
-                                sibling->color = parent->color;
-                                right_rotate(parent);
-                            }
-                            else
-                            {
-                                // CHANGEED
-                                if (sibling->right)
-                                    sibling->right->color = parent->color;
-                                // right_rotate(sibling);
-                                left_rotate(parent);
-                            }
+                            w->color = RED;
+                            right_rotate(w);
+                            w = x_parent->right;
+                            w->color = BLACK;
                         }
-                        else
-                        {
-                            if (is_on_left(sibling))
-                            {
-                                sibling->right->color = parent->color;
-                                left_rotate(sibling);
-                                right_rotate(parent);
-                            }
-                            else
-                            {
-                                sibling->right->color = sibling->color;
-                                sibling->color = parent->color;
-                                left_rotate(parent);
-                            }
-                        }
-                        parent->color = BLACK;
+
+                        // case 5
+                        w->color = x_parent->color;
+                        x_parent->color = BLACK;
+                        w->right->color = BLACK;
+                        left_rotate(x_parent);
+                        x = _root;
+                        break ;
+                    }
+                }
+                else
+                {
+                    _Base_ptr w = x_parent->left;
+
+                    if (w->color == RED) // case 1
+                    {
+                        x_parent->color = RED;
+                        w->color = BLACK;
+                        right_rotate(x_parent);
+                        w = x_parent->left;
+                    }
+
+                    if ((w->right == NULL || w->right->color == BLACK) && (w->left == NULL || w->left->color == BLACK)) // case 2 && case 3
+                    {
+                        w->color = RED;
+                        x = x_parent;
+                        x_parent = x->parent;
                     }
                     else
                     {
-                        sibling->color = RED;
-                        if (parent->color == BLACK)
-                            fix_double_black(parent);
-                        else
-                            parent->color = BLACK;
+                        if ((w->left == NULL || w->left->color == BLACK)) // case 4
+                        {
+                            w->color = RED;
+                            left_rotate(w);
+                            w = x_parent->left;
+                            w->color = BLACK;
+                        }
+
+                        // case 5
+                        w->color = x_parent->color;
+                        x_parent->color = BLACK;
+                        w->left->color = BLACK;
+                        right_rotate(x_parent);
+                        x = _root;
+                        break ;
                     }
                 }
             }
+            if (x) // case 0 + 2 when parent was red
+                x->color = BLACK;
         }
 
         iterator begin() { return iterator(this->_root->minimum(_end)); }

@@ -164,7 +164,7 @@ namespace ft
         void erase(iterator pos)
         {   
             if (size() != 0)
-                _rb_t.deleteByVal(pos); //
+                _rb_t.deleteByVal(pos);
         }
         
         void erase(iterator first, iterator last)
@@ -174,19 +174,17 @@ namespace ft
             {
                 temp = first;
                 first++;
-                _rb_t.deleteByVal(temp); //
+                _rb_t.deleteByVal(temp);
             }
         }
 
         size_type erase(const Key& key)
         {
-            // _Base_ptr _tmp = _rb_t.search(ft::make_pair(key, mapped_type()));
-
             iterator it(_rb_t.search(ft::make_pair(key, mapped_type())));
             
             if (it._M_node)
             {
-                _rb_t.deleteByVal(it); //
+                _rb_t.deleteByVal(it);
                 return 1;
             }
             return 0;

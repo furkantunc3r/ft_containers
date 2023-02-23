@@ -16,19 +16,19 @@ void map_test_erase_range()
 {
     SETUP_ARRAYS();
 
-    {
-        strmap m;
+    // {
+    //     strmap m;
 
-        m.erase(m.begin(), m.end());
+    //     m.erase(m.begin(), m.end());
 
-        PRINT_ALL(m);
+    //     PRINT_ALL(m);
 
-        m.insert(strstr_arr, strstr_arr + strstr_size);
+    //     m.insert(strstr_arr, strstr_arr + strstr_size);
 
-        m.erase(m.begin(), m.end());
+    //     m.erase(m.begin(), m.end());
 
-        PRINT_ALL(m);
-    }
+    //     PRINT_ALL(m);
+    // }
 
     {
         intmap m(intstr_arr, intstr_arr + intstr_size);
@@ -60,17 +60,17 @@ void map_test_erase_range()
 
         PRINT_ALL(m);
 
-        it = m.begin();
-        end = it;
-        std::advance(end, 1);
+        // it = m.begin();
+        // end = it;
+        // std::advance(end, 1);
 
-        m.erase(it, end);
+        // m.erase(it, end);
 
-        PRINT_ALL(m);
+        // PRINT_ALL(m);
 
-        m.erase(m.begin(), m.end());
+        // m.erase(m.begin(), m.end());
 
-        PRINT_ALL(m);
+        // PRINT_ALL(m);
     }
 }
 

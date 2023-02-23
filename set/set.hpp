@@ -80,13 +80,15 @@ namespace ft
         ft::pair<iterator, bool>
         insert(const value_type& value)
         {
-            _Base_ptr ret = _rb_t.search(value);
+            int exists = 0;
+            _Base_ptr pos = this->_rb_t.search(&exists, value);
+            if (!exists)
+            {
+                _Base_ptr _new = _rb_t.insert_at(pos, value);
+                return ft::pair<iterator, bool>(iterator(_new), true);
+            }
 
-            if (ret)
-                return ft::pair<iterator, bool>(iterator(ret), false);
-            else
-                _rb_t.insert(value);
-            return ft::pair<iterator, bool>(iterator(_rb_t.search(value)), true);
+            return ft::pair<iterator, bool>(iterator(pos), false);
         }
 
         iterator insert(iterator pos, const value_type& value)
@@ -111,7 +113,7 @@ namespace ft
         void erase(iterator pos)
         { 
             if (size() != 0)
-                _rb_t.deleteByVal(pos._M_node->data);
+                _rb_t.deleteByVal(pos._M_node);
         }
 
         void erase(iterator first, iterator last)
@@ -121,7 +123,7 @@ namespace ft
             {
                 temp = first;
                 first++;
-                _rb_t.deleteByVal(temp._M_node->data);
+                _rb_t.deleteByVal(temp._M_node);
             }
         }
 
@@ -131,7 +133,7 @@ namespace ft
 
             if (_tmp)
             {
-                _rb_t.deleteByVal(_tmp->data);
+                _rb_t.deleteByVal(_tmp);
                 return 1;
             }
             return 0;
