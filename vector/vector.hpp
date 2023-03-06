@@ -277,7 +277,7 @@ namespace ft
 
             size_type size() const { return size_type(this->_end - this->_begin); }
 
-            size_type max_size() const { return this->_allocator.max_size(); }
+            size_type max_size() const{return std::min<size_type>(this->_allocator.max_size(), std::numeric_limits<difference_type>::max());}
 
             void reserve (size_type new_cap)
             {
