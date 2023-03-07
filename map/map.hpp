@@ -98,7 +98,7 @@ namespace ft
 
             _tmp = this->_rb_t.search(ft::make_pair(key, T()));
             if (!_tmp)
-                throw std::out_of_range("No such elemnt in map!");
+                throw std::out_of_range("No such element in map!");
             return _tmp->data.second;
         }
 

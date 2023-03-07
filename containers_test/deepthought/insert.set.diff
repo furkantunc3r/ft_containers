@@ -1,8 +1,0 @@
-81c81
-< insert return: value: fuzzy
----
-> insert return: value: lol
-87a88
-> - value: fuzzy
-90d90
-< - value: fuzzy
