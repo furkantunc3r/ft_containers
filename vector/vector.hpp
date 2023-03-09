@@ -26,10 +26,10 @@ namespace ft
             typedef ft::reverse_iterator<iterator> reverse_iterator;
             typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
-            allocator_type _allocator;
-            pointer _begin;
-            pointer _end;
-            pointer _end_of_storage;
+            allocator_type  _allocator;
+            pointer         _begin;
+            pointer         _end;
+            pointer         _end_of_storage;
 
         private:
             template<class InputIt>
@@ -103,27 +103,18 @@ namespace ft
                 }
             }
 
-            template<class InputIt> // CHANGED
+            template<class InputIt>
             vector (InputIt first, InputIt last, const allocator_type& alloc = allocator_type(), typename ft::enable_if<!is_integral<InputIt>::value, bool>::type = true) : _allocator(alloc), _begin(0), _end(0), _end_of_storage(0)
             {
                 assign(first, last);
-                // size_type i = 0;
-                // for (InputIt temp = first; temp != last; temp++)
-                //     i++;
-                // this->_begin = this->_allocator.allocate(i);
-                // this->_end = this->_begin;
-                // while (first != last)
-                // {
-                //     this->_allocator.construct(_end, *first);
-                //     first++;
-                //     _end++;
-                // }
-                // this->_end_of_storage = this->_begin + i;
             }
 
             vector (const vector& other) : _allocator(other._allocator)
             {
-                this->_begin = this->_allocator.allocate(other.capacity());
+                if (other.capacity())
+                    this->_begin = this->_allocator.allocate(other.capacity());
+                else
+                    this->_begin = NULL;
                 this->_end = this->_begin;
                 this->_end_of_storage = this->_begin + (other.capacity());
                 for (size_type it = 0; it < other.size(); it++)
@@ -360,7 +351,7 @@ namespace ft
 				return iterator(this->_begin + _new_pos);
 			}
 
-            iterator insert(iterator pos, size_type count, const value_type& value) //changed
+            iterator insert(iterator pos, size_type count, const value_type& value)
             {
                 size_type _new_pos = size_type(pos - begin());
                 size_type len = end() - pos;
@@ -383,10 +374,6 @@ namespace ft
                 }
                 std::swap_ranges(rbegin(), rbegin() + len, rbegin() + count);
                 return iterator(this->_begin + _new_pos);
-
-                // for (size_type i = 0; i < count; i++, pos++)
-                //     pos = insert(pos, value);
-                // return pos;
             }
 
             template<class InputIt>
@@ -430,11 +417,13 @@ namespace ft
             {
                 insert(end(), value);
             }
+
             void pop_back ()
             {
                 erase(end() - 1);
             }
-            void resize(size_type count, _Tp value = _Tp()) // changed
+
+            void resize(size_type count, _Tp value = _Tp())
             {
                 size_type _end = size();
                 
@@ -449,27 +438,8 @@ namespace ft
                         count++;
                     }
                 }
-                // if (size() > count)
-                // {
-                //     size_type i = end() - (begin() + count);
-                //     while (i > 0)
-                //     {
-                //         pop_back();
-                //         i--;
-                //     }
-                // }
-                // else if (size() < count)
-                // {
-                //     size_type _size = size();
-                //     while (_size < count)
-                //     {
-                //         push_back(value);
-                //         _size++;
-                //     }
-                // }
-                // else
-                //     return ;
             }
+
             void swap(vector& other)
             {
                 std::swap(this->_begin, other._begin);
