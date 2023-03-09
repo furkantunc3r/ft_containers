@@ -1,8 +1,0 @@
-Less than.. (file: tests/vector/comparisons_lt.cpp, line: 40)
-Less than..... (file: tests/vector/comparisons_lt.cpp, line: 76)
-========================================
-No leak detected
-========================================
-========================================
-Every objects destroyed
-========================================
