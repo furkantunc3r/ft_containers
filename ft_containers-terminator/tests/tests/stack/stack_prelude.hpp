@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "stack.hpp"
+#include "../../../../stack/stack.hpp"
 #include <stack>
 #include <vector>
 

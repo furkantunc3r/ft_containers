@@ -1,6 +1,6 @@
-Less.. (file: tests/set/comparisons_lt.cpp, line: 42)
-Less..... (file: tests/set/comparisons_lt.cpp, line: 75)
-Less...... (file: tests/set/comparisons_lt.cpp, line: 86)
+Not Equal. (file: tests/stack/comparisons_ne.cpp, line: 32)
+Not Equal.. (file: tests/stack/comparisons_ne.cpp, line: 43)
+Not Equal... (file: tests/stack/comparisons_ne.cpp, line: 54)
 ========================================
 No leak detected
 ========================================

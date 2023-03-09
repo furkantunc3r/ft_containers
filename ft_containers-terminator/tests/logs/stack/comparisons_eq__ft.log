@@ -1,7 +1,5 @@
-Empty: true (file: tests/set/empty.cpp, line: 22)
-Empty: false (file: tests/set/empty.cpp, line: 26)
-Empty: true (file: tests/set/empty.cpp, line: 30)
-Empty: false (file: tests/set/empty.cpp, line: 36)
+Equal (file: tests/stack/comparisons_eq.cpp, line: 22)
+Equal.... (file: tests/stack/comparisons_eq.cpp, line: 65)
 ========================================
 No leak detected
 ========================================
