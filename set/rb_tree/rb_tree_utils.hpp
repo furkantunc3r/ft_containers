@@ -2,6 +2,7 @@
 #define RB_TREE_UTILS_HPP
 
 #include <iostream>
+#include "../../normal_iterator.hpp"
 
 namespace ft
 {
@@ -93,30 +94,7 @@ namespace ft
     {
         return tree_decrement(const_cast<Node<_Tp>* >(_x));
     }
-
-    template<class InputIt1, class InputIt2>
-    bool lexicographical_compare(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
-    {
-        while (first1!=last1)
-        {
-          if (first2==last2 || *first2<*first1) return false;
-          else if (*first1<*first2) return true;
-          ++first1; ++first2;
-        }
-        return (first2!=last2);
-    }
-
-    template <class InputIterator1, class InputIterator2>
-    bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 )
-    {
-      while (first1!=last1) {
-        if (!(*first1 == *first2))
-          return false;
-        ++first1; ++first2;
-      }
-      return true;
-    }
-
+    
     template<typename _Base_ptr, typename _Value, typename _Alloc>
     void create_node(_Base_ptr *_node, _Value _value, _Alloc _allocator)
     {
